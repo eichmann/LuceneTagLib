@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+	version="2.0">
+	<tlib-version>2.1</tlib-version>
+	<short-name>lucene</short-name>
+	<uri>http://icts.uiowa.edu/lucene</uri>
+
+	<tag>
+		<name>index</name>
+		<tag-class>edu.uiowa.lucene.LuceneIndex</tag-class>
+		<body-content>JSP</body-content>
+
+		<attribute>
+			<name>lucenePath</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+		<attribute>
+			<name>truncate</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	
+	<tag>
+		<name>document</name>
+		<tag-class>edu.uiowa.lucene.LuceneDocument</tag-class>
+		<body-content>JSP</body-content>
+
+		<attribute>
+			<name>lucenePath</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	
+	<tag>
+		<name>field</name>
+		<tag-class>edu.uiowa.lucene.LuceneField</tag-class>
+		<body-content>JSP</body-content>
+
+		<attribute>
+			<name>keyField</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+		<attribute>
+			<name>label</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+		<attribute>
+			<name>value</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	
+	<tag>
+		<name>search</name>
+		<tag-class>edu.uiowa.lucene.LuceneSearch</tag-class>
+		<body-content>JSP</body-content>
+
+		<attribute>
+			<name>lucenePath</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+		<attribute>
+			<name>queryString</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+		<attribute>
+			<name>label</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	
+	<tag>
+		<name>count</name>
+		<tag-class>edu.uiowa.lucene.LuceneCount</tag-class>
+		<body-content>empty</body-content>
+	</tag>
+	
+	<tag>
+		<name>searchIterator</name>
+		<tag-class>edu.uiowa.lucene.LuceneIterator</tag-class>
+		<body-content>JSP</body-content>
+
+		<attribute>
+			<name>limitCriteria</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	
+	<tag>
+		<name>hit</name>
+		<tag-class>edu.uiowa.lucene.LuceneHit</tag-class>
+		<body-content>JSP</body-content>
+
+		<attribute>
+			<name>label</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	
+	<tag>
+		<name>delete</name>
+		<tag-class>edu.uiowa.lucene.LuceneDelete</tag-class>
+		<body-content>empty</body-content>
+
+		<attribute>
+			<name>lucenePath</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+		<attribute>
+			<name>field</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+		<attribute>
+			<name>value</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	
+</taglib>
+	

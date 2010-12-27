@@ -1,1 +1,20 @@
 * text=auto !eol
+/.classpath -text
+/.project -text
+.settings/org.eclipse.jdt.core.prefs -text
+.settings/org.eclipse.wst.common.component -text
+.settings/org.eclipse.wst.common.project.facet.core.xml svneol=native#text/xml
+.settings/org.maven.ide.eclipse.prefs -text
+/pom.xml svneol=native#text/xml
+src/main/java/edu/uiowa/lucene/LuceneCount.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneDelete.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneDocument.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneField.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneHit.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneIndex.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneIterator.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneSearch.java svneol=native#text/x-java-source
+src/main/resources/META-INF/taglib.tld -text svneol=unset#text/xml
+src/main/resources/META-INF/taglib.tld.off -text
+src/test/java/edu/uiowa/lucene/README.txt svneol=native#text/plain
+src/test/resources/README.txt svneol=native#text/plain
