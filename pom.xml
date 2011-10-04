@@ -8,8 +8,8 @@
   
   <url>http://www.icts.uiowa.edu/confluence/display/apps/LuceneTagLib</url>
   <scm>
-  	<connection>scm:svn:https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib/branches/maven/</connection>
-  	<developerConnection>scm:svn:https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib/branches/maven/</developerConnection>
+  	<connection>scm:svn:https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib/trunk/</connection>
+  	<developerConnection>scm:svn:https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib/trunk/</developerConnection>
   	<url>https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib</url>
   </scm>
 <distributionManagement>
