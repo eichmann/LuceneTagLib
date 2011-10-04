@@ -3,14 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.uiowa.icts.taglib</groupId>
   <artifactId>LuceneTagLib</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <name>LuceneTagLib</name>
   
   <url>http://www.icts.uiowa.edu/confluence/display/apps/LuceneTagLib</url>
   <scm>
-  	<connection>scm:svn:https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib/trunk/</connection>
-  	<developerConnection>scm:svn:https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib/trunk/</developerConnection>
-  	<url>https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib</url>
+  	<connection>scm:svn:https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib/tags/LuceneTagLib-0.0.1</connection>
+  	<developerConnection>scm:svn:https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib/tags/LuceneTagLib-0.0.1</developerConnection>
+  	<url>scm:svn:https://srcvault.icts.uiowa.edu/repos/TagLibs/LuceneTagLib/tags/LuceneTagLib-0.0.1</url>
   </scm>
 <distributionManagement>
     <repository>
