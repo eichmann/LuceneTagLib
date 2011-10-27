@@ -13,6 +13,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.LockObtainFailedException;
+import org.apache.lucene.store.SimpleFSLockFactory;
 
 @SuppressWarnings("serial")
 
@@ -22,10 +23,13 @@ public class LuceneDelete extends BodyTagSupport {
 	String value = null;
 	IndexWriter theWriter = null;
     Document theDocument = null;
+    
+	public static SimpleFSLockFactory _LockFactory;
+
 	
 	public int doStartTag() throws JspException {
         try {
-            Directory directory = FSDirectory.open(new File(lucenePath));
+            Directory directory = FSDirectory.open(new File(lucenePath), _LockFactory);
             IndexReader reader = IndexReader.open(directory, false); // we don't want read-only because we are about to delete
             reader.deleteDocuments(new Term(field.trim(),value.trim()));
             reader.flush();

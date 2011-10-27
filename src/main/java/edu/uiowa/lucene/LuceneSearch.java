@@ -21,6 +21,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.SimpleFSLockFactory;
 
 @SuppressWarnings("serial")
 
@@ -31,11 +32,16 @@ public class LuceneSearch extends BodyTagSupport {
     String queryString = null;
     IndexReader reader = null;
     IndexSearcher theSearcher = null;
+    
+	public static SimpleFSLockFactory _LockFactory;
 
     public int doStartTag() throws JspException {
 //        System.out.println("search called: " + queryString);
         try {
-        	reader = IndexReader.open(FSDirectory.open(new File(lucenePath)), true);
+
+        	_LockFactory =  new SimpleFSLockFactory();
+        	
+        	reader = IndexReader.open(FSDirectory.open(new File(lucenePath), _LockFactory), true);
             theSearcher = new IndexSearcher(reader);
             QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
             Query theQuery = theQueryParser.parse(queryString);

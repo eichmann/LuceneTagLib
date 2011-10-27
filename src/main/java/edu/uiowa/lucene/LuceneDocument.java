@@ -12,6 +12,7 @@ import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.LockObtainFailedException;
+import org.apache.lucene.store.SimpleFSLockFactory;
 
 @SuppressWarnings("serial")
 
@@ -19,10 +20,14 @@ public class LuceneDocument extends BodyTagSupport {
 	String lucenePath = null;
 	IndexWriter theWriter = null;
     Document theDocument = null;
+    
+	public static SimpleFSLockFactory _LockFactory;
+
 	
 	public int doStartTag() throws JspException {
         try {
-            theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath)), new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.LIMITED);
+            theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory),
+            		new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.LIMITED);
 			theDocument = new Document();
 		} catch (CorruptIndexException e) {
 			e.printStackTrace();

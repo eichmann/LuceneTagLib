@@ -12,6 +12,7 @@ import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.LockObtainFailedException;
+import org.apache.lucene.store.SimpleFSLockFactory;
 
 @SuppressWarnings("serial")
 
@@ -20,16 +21,19 @@ public class LuceneIndex extends BodyTagSupport {
 	IndexWriter theWriter = null;
     Document theDocument = null;
     boolean truncate = false;
+    
+	public static SimpleFSLockFactory _LockFactory;
+
 	
 	public int doStartTag() throws JspException {
         try {
             if (truncate) {
-                theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath)), new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), true, IndexWriter.MaxFieldLength.LIMITED);
+                theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory), new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), true, IndexWriter.MaxFieldLength.LIMITED);
                 for (int i = 0; i < theWriter.maxDoc(); i++)
                     theWriter.deleteAll();
                 theWriter.close();
             }
-            theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath)), new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), true, IndexWriter.MaxFieldLength.LIMITED);
+            theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory), new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), true, IndexWriter.MaxFieldLength.LIMITED);
 		} catch (CorruptIndexException e) {
 			e.printStackTrace();
 		} catch (LockObtainFailedException e) {
