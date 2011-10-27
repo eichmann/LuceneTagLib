@@ -30,7 +30,11 @@ public class LuceneIndex extends BodyTagSupport {
 	
 	public int doStartTag() throws JspException {
         try {
+
+        	_LockFactory =  new SimpleFSLockFactory();
             if (truncate) {
+
+            	_LockFactory =  new SimpleFSLockFactory();
                 theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory), new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), true, IndexWriter.MaxFieldLength.LIMITED);
                 for (int i = 0; i < theWriter.maxDoc(); i++)
                     theWriter.deleteAll();

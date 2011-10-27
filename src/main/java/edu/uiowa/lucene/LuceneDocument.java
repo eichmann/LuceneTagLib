@@ -29,6 +29,8 @@ public class LuceneDocument extends BodyTagSupport {
 	
 	public int doStartTag() throws JspException {
         try {
+
+        	_LockFactory =  new SimpleFSLockFactory();
             theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory),
             		new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.LIMITED);
 			theDocument = new Document();

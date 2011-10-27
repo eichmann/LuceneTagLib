@@ -32,6 +32,8 @@ public class LuceneDelete extends BodyTagSupport {
 	
 	public int doStartTag() throws JspException {
         try {
+
+        	_LockFactory =  new SimpleFSLockFactory();
             Directory directory = FSDirectory.open(new File(lucenePath), _LockFactory);
             IndexReader reader = IndexReader.open(directory, false); // we don't want read-only because we are about to delete
             reader.deleteDocuments(new Term(field.trim(),value.trim()));
