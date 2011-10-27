@@ -12,6 +12,8 @@ import java.io.IOException;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
@@ -34,6 +36,8 @@ public class LuceneSearch extends BodyTagSupport {
     IndexSearcher theSearcher = null;
     
 	public static SimpleFSLockFactory _LockFactory;
+    private static final Log log =LogFactory.getLog(LuceneSearch.class);
+
 
     public int doStartTag() throws JspException {
 //        System.out.println("search called: " + queryString);
@@ -49,11 +53,11 @@ public class LuceneSearch extends BodyTagSupport {
             theHits = theSearcher.search(theQuery, 1000);
             return EVAL_BODY_INCLUDE;
         } catch (CorruptIndexException e) {
-            e.printStackTrace();
+			log.error("Corruption Exception", e);
         } catch (IOException e) {
-            e.printStackTrace();
+			log.error("IO Exception", e);
         }  catch (ParseException e) {
-            e.printStackTrace();
+			log.error("Problem Parseing" + queryString, e);
         }
 
         return SKIP_BODY;
@@ -64,7 +68,7 @@ public class LuceneSearch extends BodyTagSupport {
 	        theSearcher.close();
 	        reader.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error("Corruption Exception", e);
 		}
     	return super.doEndTag();		
 	}

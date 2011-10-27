@@ -5,6 +5,8 @@ import java.io.File;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
@@ -25,6 +27,7 @@ public class LuceneDelete extends BodyTagSupport {
     Document theDocument = null;
     
 	public static SimpleFSLockFactory _LockFactory;
+    private static final Log log =LogFactory.getLog(LuceneDelete.class);
 
 	
 	public int doStartTag() throws JspException {
@@ -32,15 +35,16 @@ public class LuceneDelete extends BodyTagSupport {
             Directory directory = FSDirectory.open(new File(lucenePath), _LockFactory);
             IndexReader reader = IndexReader.open(directory, false); // we don't want read-only because we are about to delete
             reader.deleteDocuments(new Term(field.trim(),value.trim()));
+            log.debug("Deleting Term (Field,value):" + field + "," + value );
             reader.flush();
             reader.close();
             directory.close();
 		} catch (CorruptIndexException e) {
-			e.printStackTrace();
+			log.error("Corruption Exception", e);
 		} catch (LockObtainFailedException e) {
-			e.printStackTrace();
+			log.error("Failed to obtain Lock", e);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Exception", e);
 		}
 
 		return EVAL_PAGE;

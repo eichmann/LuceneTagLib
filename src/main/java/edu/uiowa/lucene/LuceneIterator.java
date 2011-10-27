@@ -12,6 +12,8 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.search.ScoreDoc;
@@ -28,7 +30,9 @@ public class LuceneIterator extends BodyTagSupport {
     String label = null;
 
     int limitCriteria = 0;
+    private static final Log log =LogFactory.getLog(LuceneIterator.class);
 
+    
     public int doStartTag() throws JspException {
 	    theSearch = (LuceneSearch)findAncestorWithClass(this, LuceneSearch.class);
 		
@@ -44,9 +48,11 @@ public class LuceneIterator extends BodyTagSupport {
                 return EVAL_BODY_INCLUDE;
             }
         } catch (CorruptIndexException e) {
-            e.printStackTrace();
+			log.error("Corruption Exception", e);
+
         } catch (IOException e) {
-            e.printStackTrace();
+			log.error("IO Exception", e);
+
         }
 
         return SKIP_BODY;
@@ -63,10 +69,11 @@ public class LuceneIterator extends BodyTagSupport {
             try {
 				theDocument = theSearch.theSearcher.doc(theHit.doc);
 			} catch (CorruptIndexException e) {
-				e.printStackTrace();
+				log.error("Corruption Exception", e);
+
 				throw(new JspTagException(e.toString()));
 			} catch (IOException e) {
-				e.printStackTrace();
+				log.error("IO Exception", e);
 				throw(new JspTagException(e.toString()));
 			}
             return EVAL_BODY_AGAIN;

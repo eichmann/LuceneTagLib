@@ -6,6 +6,8 @@ import java.io.IOException;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
@@ -22,6 +24,7 @@ public class LuceneDocument extends BodyTagSupport {
     Document theDocument = null;
     
 	public static SimpleFSLockFactory _LockFactory;
+    private static final Log log =LogFactory.getLog(LuceneDocument.class);
 
 	
 	public int doStartTag() throws JspException {
@@ -30,11 +33,14 @@ public class LuceneDocument extends BodyTagSupport {
             		new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.LIMITED);
 			theDocument = new Document();
 		} catch (CorruptIndexException e) {
-			e.printStackTrace();
+			log.error("Corruption Exception", e);
+
 		} catch (LockObtainFailedException e) {
-			e.printStackTrace();
+			log.error("Failed to Obtain Lock", e);
+
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error("IO Exception", e);
+
 		}
 
 		return EVAL_PAGE;
@@ -46,9 +52,11 @@ public class LuceneDocument extends BodyTagSupport {
 	        theWriter.optimize();
 	        theWriter.close();
 		} catch (CorruptIndexException e) {
-			e.printStackTrace();
+			log.error("Corruption Exception", e);
+
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error("IO Exception", e);
+
 		}
     	return super.doEndTag();		
 	}

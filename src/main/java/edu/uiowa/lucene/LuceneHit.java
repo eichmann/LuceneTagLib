@@ -6,6 +6,8 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.index.CorruptIndexException;
 
 @SuppressWarnings("serial")
@@ -16,6 +18,8 @@ public class LuceneHit extends BodyTagSupport {
     boolean keyField = false;
 	String label = null;
 	String value = null;
+    private static final Log log =LogFactory.getLog(LuceneHit.class);
+
 	
 	public int doStartTag() throws JspTagException {
 	    theSearch = (LuceneSearch)findAncestorWithClass(this, LuceneSearch.class);
@@ -33,9 +37,9 @@ public class LuceneHit extends BodyTagSupport {
 //                System.out.println("target: " + theSearch.theDocument.get(label) + "\tscore: " + theSearch.theHit.getScore());
             }
         } catch (CorruptIndexException e) {
-            e.printStackTrace();
+			log.error("Corruption Exception", e);
         } catch (IOException e) {
-            e.printStackTrace();
+			log.error("IO Exception", e);
         }
 		
 		return SKIP_BODY;

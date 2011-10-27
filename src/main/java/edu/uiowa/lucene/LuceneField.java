@@ -4,6 +4,8 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Field;
 
 @SuppressWarnings("serial")
@@ -13,6 +15,8 @@ public class LuceneField extends BodyTagSupport {
     boolean keyField = false;
 	String label = null;
 	String value = null;
+    private static final Log log =LogFactory.getLog(LuceneField.class);
+
 	
 	public int doStartTag() throws JspTagException {
 		theDocument = (LuceneDocument)findAncestorWithClass(this, LuceneDocument.class);
