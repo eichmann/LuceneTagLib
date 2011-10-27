@@ -40,7 +40,7 @@ public class LuceneSearch extends BodyTagSupport {
 
 
     public int doStartTag() throws JspException {
-//        System.out.println("search called: " + queryString);
+    	log.debug("search called: " + queryString);
         try {
 
         	_LockFactory =  new SimpleFSLockFactory();
