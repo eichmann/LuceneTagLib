@@ -2,6 +2,8 @@ package edu.uiowa.lucene;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
@@ -26,11 +28,12 @@ public class LuceneIndex extends BodyTagSupport {
     
 	public static SimpleFSLockFactory _LockFactory;
     private static final Log log =LogFactory.getLog(LuceneIndex.class);
-
+    static Lock writeLock = new ReentrantLock();
 	
 	public int doStartTag() throws JspException {
+    	writeLock.lock();
+		log.info("Lucene lock acquired...");
         try {
-
         	_LockFactory =  new SimpleFSLockFactory();
             if (truncate) {
 
@@ -60,6 +63,9 @@ public class LuceneIndex extends BodyTagSupport {
 			log.error("Corruption Exception", e);
 		} catch (IOException e) {
 			log.error("IO Exception", e);
+		} finally {
+			writeLock.unlock();
+			log.info("Lucene lock released.");
 		}
     	return super.doEndTag();		
 	}

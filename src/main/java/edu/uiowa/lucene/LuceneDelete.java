@@ -31,6 +31,8 @@ public class LuceneDelete extends BodyTagSupport {
 
 	
 	public int doStartTag() throws JspException {
+		LuceneIndex.writeLock.lock();
+		log.info("Lucene lock acquired...");
         try {
 
         	_LockFactory =  new SimpleFSLockFactory();
@@ -47,6 +49,9 @@ public class LuceneDelete extends BodyTagSupport {
 			log.error("Failed to obtain Lock", e);
 		} catch (Exception e) {
 			log.error("Exception", e);
+		} finally {
+			LuceneIndex.writeLock.unlock();
+			log.info("Lucene lock released.");
 		}
 
 		return EVAL_PAGE;

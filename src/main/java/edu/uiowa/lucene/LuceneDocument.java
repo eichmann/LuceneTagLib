@@ -28,6 +28,8 @@ public class LuceneDocument extends BodyTagSupport {
 
 	
 	public int doStartTag() throws JspException {
+		LuceneIndex.writeLock.lock();
+		log.info("Lucene lock acquired...");
         try {
 
         	_LockFactory =  new SimpleFSLockFactory();
@@ -55,10 +57,11 @@ public class LuceneDocument extends BodyTagSupport {
 	        theWriter.close();
 		} catch (CorruptIndexException e) {
 			log.error("Corruption Exception", e);
-
 		} catch (IOException e) {
 			log.error("IO Exception", e);
-
+		} finally {
+			LuceneIndex.writeLock.unlock();
+			log.info("Lucene lock released.");
 		}
     	return super.doEndTag();		
 	}
