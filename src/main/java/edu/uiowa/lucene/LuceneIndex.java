@@ -32,7 +32,7 @@ public class LuceneIndex extends BodyTagSupport {
 	
 	public int doStartTag() throws JspException {
     	writeLock.lock();
-		log.info("Lucene lock acquired...");
+		log.debug("Lucene lock acquired...");
         try {
         	_LockFactory =  new SimpleFSLockFactory();
             if (truncate) {
@@ -65,7 +65,7 @@ public class LuceneIndex extends BodyTagSupport {
 			log.error("IO Exception", e);
 		} finally {
 			writeLock.unlock();
-			log.info("Lucene lock released.");
+			log.debug("Lucene lock released.");
 		}
     	return super.doEndTag();		
 	}
