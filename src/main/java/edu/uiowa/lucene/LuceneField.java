@@ -1,5 +1,7 @@
 package edu.uiowa.lucene;
 
+import java.util.StringTokenizer;
+
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
@@ -41,11 +43,28 @@ public class LuceneField extends BodyTagSupport {
 	
     private void addField(String content) {
         if (content != null && content.length() > 0) {
-//            System.out.println("label: " + label + "\tcontent: " + content);
-            if (keyField)
-                theDocument.theDocument.add(new Field(label.trim(), content.trim(), Field.Store.YES, Field.Index.NOT_ANALYZED));
-            else
-                theDocument.theDocument.add(new Field(label.trim(), content.trim(), Field.Store.NO, Field.Index.ANALYZED));
+            if (keyField) {
+                theDocument.theDocument.add(new Field(label, content, Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+                // we jump through this tokenization hoop due to the significant whitespace present in JSP/tag body text
+                if (log.isDebugEnabled()) {
+                	StringBuffer buffer = new StringBuffer();
+                    StringTokenizer tokenizer = new StringTokenizer(content);
+                    while (tokenizer.hasMoreTokens())
+                    	buffer.append(tokenizer.nextToken() + " ");                	
+                    log.debug("\tlabel: " + label + "\tcontent: " + buffer);
+                }
+            } else {
+                theDocument.theDocument.add(new Field(label, content, Field.Store.NO, Field.Index.ANALYZED));
+                
+                if (log.isDebugEnabled()) {
+                	StringBuffer buffer = new StringBuffer();
+                    StringTokenizer tokenizer = new StringTokenizer(content);
+                    while (buffer.length() < 50 && tokenizer.hasMoreTokens())
+                    	buffer.append(tokenizer.nextToken() + " ");                	
+                    log.debug("\tlabel: " + label + "\tcontent: " + buffer + "...");
+                }
+            }
         }
 
     }
@@ -63,7 +82,7 @@ public class LuceneField extends BodyTagSupport {
 	}
 
 	public void setLabel(String label) {
-		this.label = label;
+		this.label = label.trim();
 	}
 
 	public String getValue() {
@@ -71,7 +90,7 @@ public class LuceneField extends BodyTagSupport {
 	}
 
 	public void setValue(String value) {
-		this.value = value;
+		this.value = value.trim();
 	}
 
 }
