@@ -20,43 +20,20 @@ import org.apache.lucene.store.SimpleFSLockFactory;
 
 public class LuceneDocument extends BodyTagSupport {
 	String lucenePath = null;
-	IndexWriter theWriter = null;
+	//IndexWriter theWriter = null;
     Document theDocument = null;
     
 	public static SimpleFSLockFactory _LockFactory;
     private static final Log log =LogFactory.getLog(LuceneDocument.class);
 
-	
-	public int doStartTag() throws JspException {
-		LuceneIndex.writeLock.lock();
-		log.debug("Lucene lock acquired...");
-        try {
+	private static synchronized void writeIndex(String lucenePath, Document theDocument) {
+		try {
+			  
+		 
+			IndexWriter theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory),
+        		new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.LIMITED);
 
-        	theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory),
-            		new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.LIMITED);
-			theDocument = new Document();
-		} catch (CorruptIndexException e) {
-			log.error("Corruption Exception", e);
-			LuceneIndex.writeLock.unlock();
-			
-
-		} catch (LockObtainFailedException e) {
-			log.error("Failed to Obtain Lock", e);
-			LuceneIndex.writeLock.unlock();
-			
-
-		} catch (IOException e) {
-			log.error("IO Exception", e);
-			LuceneIndex.writeLock.unlock();
-			
-
-		}
-
-		return EVAL_PAGE;
-	}
-	
-	public int doEndTag() throws JspException {
-        try {
+      
 			theWriter.addDocument(theDocument);
 	        theWriter.optimize();
 	        theWriter.close();
@@ -66,8 +43,55 @@ public class LuceneDocument extends BodyTagSupport {
 			log.error("IO Exception", e);
 		} finally {
 			LuceneIndex.writeLock.unlock();
-			log.debug("Lucene lock released.");
+			//log.debug("Lucene lock released.");
 		}
+		
+	}
+	public int doStartTag() throws JspException {
+		//LuceneIndex.writeLock.lock();
+		//log.debug("Lucene lock acquired...");
+//        try {
+
+        //	theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory),
+        //    		new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.LIMITED);
+		theDocument = new Document();
+//		} catch (CorruptIndexException e) {
+//			log.error("Corruption Exception", e);
+//			LuceneIndex.writeLock.unlock();
+//			
+//
+//		} catch (LockObtainFailedException e) {
+//			log.error("Failed to Obtain Lock", e);
+//			LuceneIndex.writeLock.unlock();
+//			
+//
+//		} catch (IOException e) {
+//			log.error("IO Exception", e);
+//			LuceneIndex.writeLock.unlock();
+//			
+//
+//		}
+//
+		return EVAL_PAGE;
+	}
+	
+	public int doEndTag() throws JspException {
+		
+		writeIndex( getLucenePath(), theDocument);
+		
+//		
+//        try {
+//			theWriter.addDocument(theDocument);
+//	        theWriter.optimize();
+//	        theWriter.close();
+//		} catch (CorruptIndexException e) {
+//			log.error("Corruption Exception", e);
+//		} catch (IOException e) {
+//			log.error("IO Exception", e);
+//		} finally {
+//			LuceneIndex.writeLock.unlock();
+//			log.debug("Lucene lock released.");
+//		}
     	return super.doEndTag();		
 	}
 
