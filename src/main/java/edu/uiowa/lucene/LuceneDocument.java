@@ -27,10 +27,13 @@ public class LuceneDocument extends BodyTagSupport {
     private static final Log log =LogFactory.getLog(LuceneDocument.class);
 
 	private static synchronized void writeIndex(String lucenePath, Document theDocument) {
+		log.debug("Starting Write Index");
+
 		try {
 			  
 		 
-			IndexWriter theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory),
+			// IndexWriter theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory),
+			IndexWriter theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath)),
         		new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.LIMITED);
 
       
@@ -42,9 +45,10 @@ public class LuceneDocument extends BodyTagSupport {
 		} catch (IOException e) {
 			log.error("IO Exception", e);
 		} finally {
-			LuceneIndex.writeLock.unlock();
+		//LuceneIndex.writeLock.unlock();
 			//log.debug("Lucene lock released.");
 		}
+		log.debug("Done Write Index");
 		
 	}
 	public int doStartTag() throws JspException {
