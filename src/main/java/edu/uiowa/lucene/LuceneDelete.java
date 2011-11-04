@@ -35,7 +35,6 @@ public class LuceneDelete extends BodyTagSupport {
 		log.debug("Lucene lock acquired...");
         try {
 
-        	_LockFactory =  new SimpleFSLockFactory();
             Directory directory = FSDirectory.open(new File(lucenePath), _LockFactory);
             IndexReader reader = IndexReader.open(directory, false); // we don't want read-only because we are about to delete
             reader.deleteDocuments(new Term(field.trim(),value.trim()));

@@ -32,18 +32,23 @@ public class LuceneDocument extends BodyTagSupport {
 		log.debug("Lucene lock acquired...");
         try {
 
-        	_LockFactory =  new SimpleFSLockFactory();
-            theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory),
+        	theWriter = new IndexWriter(FSDirectory.open(new File(lucenePath), _LockFactory),
             		new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.LIMITED);
 			theDocument = new Document();
 		} catch (CorruptIndexException e) {
 			log.error("Corruption Exception", e);
+			LuceneIndex.writeLock.unlock();
+			
 
 		} catch (LockObtainFailedException e) {
 			log.error("Failed to Obtain Lock", e);
+			LuceneIndex.writeLock.unlock();
+			
 
 		} catch (IOException e) {
 			log.error("IO Exception", e);
+			LuceneIndex.writeLock.unlock();
+			
 
 		}
 

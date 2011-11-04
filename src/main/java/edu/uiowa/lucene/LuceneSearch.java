@@ -43,7 +43,6 @@ public class LuceneSearch extends BodyTagSupport {
     	log.debug("search called: " + queryString);
         try {
 
-        	_LockFactory =  new SimpleFSLockFactory();
         	
         	reader = IndexReader.open(FSDirectory.open(new File(lucenePath), _LockFactory), true);
             theSearcher = new IndexSearcher(reader);
