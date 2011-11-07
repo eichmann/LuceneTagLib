@@ -14,45 +14,17 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.LockObtainFailedException;
-import org.apache.lucene.store.SimpleFSLockFactory;
 
 public class LuceneHelper {
 	
-//	static final int LUCENE_DOCUMENT = 1;
-//	static final int LUCENE_INDEX = 2;
-//
-//	static final int LUCENE_DELETE = 3;
-
-//	public static SimpleFSLockFactory _LockFactory;
     private static final Log log =LogFactory.getLog(LuceneHelper.class);
-    
-//    public static synchronized void updateIndex(int operation, String lucenePath, Document theDocument, String field, String value,  boolean truncate) {
-//	    
-//	    if (LUCENE_DOCUMENT == operation)	{
-//			updateDocument(lucenePath, theDocument);
-//			
-//	    }
-//	    	
-//	    	
-//	    if (LUCENE_INDEX == operation)	{
-//	    		
-//		    updateIndex(lucenePath, truncate);
-//	        
-//	    }
-//	    
-//	    if (LUCENE_DELETE == operation)	{
-//			deleteIndex(lucenePath, field, value);
-//
-//	    }
-//
-//    }
 
 	/**
 	 * @param lucenePath
 	 * @param field
 	 * @param value
 	 */
-	public static void deleteIndex(String lucenePath, String field, String value) {
+	public static synchronized void deleteIndex(String lucenePath, String field, String value) {
 		log.debug("Starting Delete Operation");
 		try {
 
@@ -134,10 +106,7 @@ public class LuceneHelper {
 			log.error("Corruption Exception", e);
 		} catch (IOException e) {
 			log.error("IO Exception", e);
-		} finally {
-		//LuceneIndex.writeLock.unlock();
-			//log.debug("Lucene lock released.");
-		}
+		} 
 		log.debug("Done Write Index");
 	}
 
