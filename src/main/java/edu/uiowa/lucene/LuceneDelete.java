@@ -23,7 +23,8 @@ public class LuceneDelete extends BodyTagSupport {
 
 	
 	public int doStartTag() throws JspException {
-		LuceneHelper.updateIndex(LuceneHelper.LUCENE_DELETE, lucenePath, theDocument, field, value, false);
+		
+		LuceneHelper.deleteIndex(lucenePath, field, value);
 		return EVAL_PAGE;
 	}
 	

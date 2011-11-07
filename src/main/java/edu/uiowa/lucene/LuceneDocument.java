@@ -24,7 +24,7 @@ public class LuceneDocument extends BodyTagSupport {
 	}
 	
 	public int doEndTag() throws JspException {
-		LuceneHelper.updateIndex(LuceneHelper.LUCENE_DOCUMENT, getLucenePath(), theDocument,null,null,  false);
+		LuceneHelper.updateDocument(getLucenePath(), theDocument);
 		
     	return super.doEndTag();		
 	}

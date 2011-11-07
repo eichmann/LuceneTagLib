@@ -32,7 +32,7 @@ public class LuceneIndex extends BodyTagSupport {
 	
 	public int doStartTag() throws JspException {
 		
-		LuceneHelper.updateIndex(LuceneHelper.LUCENE_INDEX, lucenePath, theDocument, null, null, truncate);
+		LuceneHelper.updateIndex(lucenePath, truncate);
 	
 		return EVAL_PAGE;
 	}
