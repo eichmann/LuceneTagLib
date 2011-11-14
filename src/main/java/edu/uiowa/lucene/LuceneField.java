@@ -19,6 +19,16 @@ public class LuceneField extends BodyTagSupport {
 	String value = null;
     private static final Log log =LogFactory.getLog(LuceneField.class);
 
+    public static String normalizeContent(String content) {
+        // we jump through this tokenization hoop due to the significant whitespace present in JSP/tag body text
+    	StringBuffer buffer = new StringBuffer();
+        StringTokenizer tokenizer = new StringTokenizer(content);
+
+        while (tokenizer.hasMoreTokens())
+        	buffer.append(tokenizer.nextToken() + " ");                	
+    	
+        return buffer.toString().trim();
+    }
 	
 	public int doStartTag() throws JspTagException {
 		theDocument = (LuceneDocument)findAncestorWithClass(this, LuceneDocument.class);
@@ -44,15 +54,11 @@ public class LuceneField extends BodyTagSupport {
     private void addField(String content) {
         if (content != null && content.length() > 0) {
             if (keyField) {
-                theDocument.theDocument.add(new Field(label, content, Field.Store.YES, Field.Index.NOT_ANALYZED));
+            	String normalizedContent = normalizeContent(content);
+                theDocument.theDocument.add(new Field(label, normalizedContent, Field.Store.YES, Field.Index.NOT_ANALYZED));
 
-                // we jump through this tokenization hoop due to the significant whitespace present in JSP/tag body text
                 if (log.isDebugEnabled()) {
-                	StringBuffer buffer = new StringBuffer();
-                    StringTokenizer tokenizer = new StringTokenizer(content);
-                    while (tokenizer.hasMoreTokens())
-                    	buffer.append(tokenizer.nextToken() + " ");                	
-                    log.debug("\tlabel: " + label + "\tcontent: " + buffer);
+                    log.debug("\tlabel: " + label + "\tcontent: '" + normalizedContent + "'");
                 }
             } else {
                 theDocument.theDocument.add(new Field(label, content, Field.Store.NO, Field.Index.ANALYZED));

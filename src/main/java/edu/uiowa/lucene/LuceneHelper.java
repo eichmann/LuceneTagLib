@@ -27,11 +27,12 @@ public class LuceneHelper {
 	public static synchronized void deleteIndex(String lucenePath, String field, String value) {
 		log.debug("Starting Delete Operation");
 		try {
+        	String normalizedValue = LuceneField.normalizeContent(value);
 
 		    //Directory directory = FSDirectory.open(new File(lucenePath), _LockFactory);
 			Directory directory = FSDirectory.open(new File(lucenePath));
 		    IndexReader reader = IndexReader.open(directory, false); // we don't want read-only because we are about to delete
-		    reader.deleteDocuments(new Term(field.trim(),value.trim()));
+		    reader.deleteDocuments(new Term(field.trim(),normalizedValue.trim()));
 		    log.debug("Deleting Term (Field,value):" + field + "," + value );
 		    reader.flush();
 		    reader.close();
