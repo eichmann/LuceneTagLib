@@ -19,8 +19,11 @@ import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.QueryWrapperFilter;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.SimpleFSLockFactory;
@@ -42,7 +45,7 @@ public class LuceneSearch extends BodyTagSupport {
     public int doStartTag() throws JspException {
     	log.debug("search called: " + queryString);
         try {
-
+        	BooleanQuery.setMaxClauseCount(4156);
         	
         	reader = IndexReader.open(FSDirectory.open(new File(lucenePath), _LockFactory), true);
             theSearcher = new IndexSearcher(reader);
