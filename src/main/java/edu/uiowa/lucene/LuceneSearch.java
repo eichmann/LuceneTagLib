@@ -63,28 +63,30 @@ public class LuceneSearch extends BodyTagSupport {
 		boolean retry = true;
 		while (retry) {
 			try {
-				Query theQuery = theQueryParser.parse(queryString);
-
 				retry = false;
+				Query theQuery = theQueryParser.parse(queryString);
 				myHits = searcher.search(theQuery, n);
 				return myHits;
 			} catch (BooleanQuery.TooManyClauses e) {
 				// Double the number of boolean queries allowed.
-				// The default is in org.apache.lucene.search.BooleanQuery and
-				// is 1024.
-				String defaultQueries = Integer.toString(BooleanQuery
-						.getMaxClauseCount());
-				int oldQueries = Integer.parseInt(System.getProperty(
-						"org.apache.lucene.maxClauseCount", defaultQueries));
+				// The default is in org.apache.lucene.search.BooleanQuery and is 1024.
+				String defaultQueries = Integer.toString(BooleanQuery.getMaxClauseCount());
+				int oldQueries = Integer.parseInt(System.getProperty("org.apache.lucene.maxClauseCount", defaultQueries));
 				int newQueries = oldQueries * 2;
-				log.error("Too many hits for query: " + oldQueries
-						+ ".  Increasing to " + newQueries, e);
-				System.setProperty("org.apache.lucene.maxClauseCount",
-						Integer.toString(newQueries));
+				log.error("Too many hits for query: " + oldQueries + ".  Increasing to " + newQueries, e);
+				System.setProperty("org.apache.lucene.maxClauseCount", Integer.toString(newQueries));
 				BooleanQuery.setMaxClauseCount(newQueries);
 				retry = true;
 			} catch (ParseException e) {
-				log.error("oops", e);
+				// Double the number of boolean queries allowed.
+				// The default is in org.apache.lucene.search.BooleanQuery and is 1024.
+				String defaultQueries = Integer.toString(BooleanQuery.getMaxClauseCount());
+				int oldQueries = Integer.parseInt(System.getProperty("org.apache.lucene.maxClauseCount", defaultQueries));
+				int newQueries = oldQueries * 2;
+				log.error("Too many hits for query: " + oldQueries + ".  Increasing to " + newQueries, e);
+				System.setProperty("org.apache.lucene.maxClauseCount", Integer.toString(newQueries));
+				BooleanQuery.setMaxClauseCount(newQueries);
+				retry = true;
 			}
 		}
 		return myHits;
