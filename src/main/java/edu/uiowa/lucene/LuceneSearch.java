@@ -47,7 +47,6 @@ public class LuceneSearch extends BodyTagSupport {
         try {
         	reader = IndexReader.open(FSDirectory.open(new File(lucenePath), _LockFactory), true);
             theSearcher = new IndexSearcher(reader);
-            QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
             Query theQuery = null;
             
             if (similarity) {
@@ -57,6 +56,7 @@ public class LuceneSearch extends BodyTagSupport {
             	mlt.setMaxQueryTerms(100);
             	theQuery = mlt.like(new StringReader(queryString));
             } else {
+                QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
             	theQuery = theQueryParser.parse(queryString);            	
             }
             
