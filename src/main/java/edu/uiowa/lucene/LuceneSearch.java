@@ -20,10 +20,8 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.QueryWrapperFilter;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.SimpleFSLockFactory;
@@ -45,14 +43,14 @@ public class LuceneSearch extends BodyTagSupport {
     public int doStartTag() throws JspException {
     	log.debug("search called: " + queryString);
         try {
-        	BooleanQuery.setMaxClauseCount(4156);
-        	
+
         	reader = IndexReader.open(FSDirectory.open(new File(lucenePath), _LockFactory), true);
             theSearcher = new IndexSearcher(reader);
             QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
             Query theQuery = theQueryParser.parse(queryString);
             
-            theHits = theSearcher.search(theQuery, 1000);
+            theHits = searchIndex(theSearcher, theQuery, 1000);
+            
             return EVAL_BODY_INCLUDE;
         } catch (CorruptIndexException e) {
 			log.error("Corruption Exception", e);
@@ -65,6 +63,31 @@ public class LuceneSearch extends BodyTagSupport {
         return SKIP_BODY;
     }
 
+	private static TopDocs searchIndex(IndexSearcher searcher, Query query, int n) throws IOException {
+		TopDocs myHits = null;
+		boolean retry = true;
+		while (retry) {
+			try {
+				retry = false;
+				myHits = searcher.search(query, n);
+				return myHits;
+			} catch (BooleanQuery.TooManyClauses e) {
+				// Double the number of boolean queries allowed.
+				// The default is in org.apache.lucene.search.BooleanQuery and
+				// is 1024.
+				String defaultQueries = Integer.toString(BooleanQuery.getMaxClauseCount());
+				int oldQueries = Integer.parseInt(System.getProperty("org.apache.lucene.maxClauseCount", defaultQueries));
+				int newQueries = oldQueries * 2;
+				log.error("Too many hits for query: " + oldQueries + ".  Increasing to " + newQueries, e);
+				System.setProperty("org.apache.lucene.maxClauseCount",
+				Integer.toString(newQueries));
+				BooleanQuery.setMaxClauseCount(newQueries);
+				retry = true;
+			}
+		}
+		return myHits;
+	}
+    
 	public int doEndTag() throws JspException {
         try {
 	        theSearcher.close();
