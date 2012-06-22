@@ -61,6 +61,9 @@ public class LuceneSearch extends BodyTagSupport {
             }
             
             theHits = theSearcher.search(theQuery, 1000);
+            
+            log.debug(theHits.totalHits);
+            
             return EVAL_BODY_INCLUDE;
         } catch (CorruptIndexException e) {
 			log.error("Corruption Exception", e);
@@ -83,7 +86,8 @@ public class LuceneSearch extends BodyTagSupport {
     	return super.doEndTag();		
 	}
 	
-    private void clearServiceState() {
+    @SuppressWarnings("unused")
+	private void clearServiceState() {
         this.theHits = null;
         this.label = null;
         reader = null;
