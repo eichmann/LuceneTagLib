@@ -54,6 +54,7 @@ public class LuceneSearch extends BodyTagSupport {
             	mlt.setMinDocFreq(1);
             	mlt.setMinTermFreq(1);
             	mlt.setMaxQueryTerms(100);
+            	mlt.setFieldNames(new String[] { label });
             	theQuery = mlt.like(new StringReader(queryString));
             } else {
                 QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
