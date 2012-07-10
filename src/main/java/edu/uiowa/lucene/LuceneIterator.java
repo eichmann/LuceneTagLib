@@ -26,14 +26,18 @@ public class LuceneIterator extends BodyTagSupport {
     TopDocs theHits = null;
     ScoreDoc theHit = null;
     int hitFence = 0;
+    double thresholdFence = 0.0;
     Document theDocument = null;
     String label = null;
 
     int limitCriteria = 0;
+    double thresholdCriteria = 0.0;
     private static final Log log =LogFactory.getLog(LuceneIterator.class);
 
     
     public int doStartTag() throws JspException {
+    	log.debug("limit: " + limitCriteria);
+    	log.debug("threshold: " + thresholdCriteria);
 	    theSearch = (LuceneSearch)findAncestorWithClass(this, LuceneSearch.class);
 		
 		if (theSearch == null) {
@@ -44,7 +48,14 @@ public class LuceneIterator extends BodyTagSupport {
             theHits = theSearch.theHits;
             if (hitFence < theHits.scoreDocs.length) {
                 theHit = theHits.scoreDocs[hitFence++];
+                thresholdFence = theHit.score;
                 theDocument = theSearch.theSearcher.doc(theHit.doc);
+
+                if (thresholdFence < thresholdCriteria) {
+                    clearServiceState();
+                    return SKIP_BODY;
+                }
+                
                 return EVAL_BODY_INCLUDE;
             }
         } catch (CorruptIndexException e) {
@@ -66,6 +77,13 @@ public class LuceneIterator extends BodyTagSupport {
         
         if (hitFence < theHits.scoreDocs.length) {
             theHit = theHits.scoreDocs[hitFence++];
+            thresholdFence = theHit.score;
+
+            if (thresholdFence < thresholdCriteria) {
+                clearServiceState();
+                return SKIP_BODY;
+            }
+            
             try {
 				theDocument = theSearch.theSearcher.doc(theHit.doc);
 			} catch (CorruptIndexException e) {
@@ -104,5 +122,13 @@ public class LuceneIterator extends BodyTagSupport {
     public void setLimitCriteria(int limitCriteria) {
         this.limitCriteria = limitCriteria;
     }
+
+	public double getThresholdCriteria() {
+		return thresholdCriteria;
+	}
+
+	public void setThresholdCriteria(double thresholdCriteria) {
+		this.thresholdCriteria = thresholdCriteria;
+	}
 
 }
