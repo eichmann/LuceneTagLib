@@ -87,7 +87,6 @@ public class LuceneSearch extends BodyTagSupport {
     	return super.doEndTag();		
 	}
 	
-    @SuppressWarnings("unused")
 	private void clearServiceState() {
         this.theHits = null;
         this.label = null;
