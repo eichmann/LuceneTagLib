@@ -1,0 +1,50 @@
+package edu.uiowa.lucene.conceptSearch;
+import java.util.*;
+import org.apache.lucene.search.Query;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+parser code {:
+    static final Log log =LogFactory.getLog(ConceptParseCup.class);
+
+        public static void main(String args[]) throws Exception {
+                new ConceptParseCup(new conceptParseFlex(System.in)).parse();
+        }
+:}
+
+terminal LPAREN, RPAREN;
+terminal String, AND_OP, OR_OP;
+
+non terminal Query	top, Pat;
+non terminal Vector<String> TokenList;
+
+precedence left OR_OP;
+precedence left AND_OP;
+
+start with top;
+
+top ::=	Pat:p		{: RESULT = p;
+					   ConceptParseCup.log.info("\ttop: " + RESULT);
+					 :}
+	;
+
+Pat ::= 
+	| LPAREN Pat:p RPAREN		{: 	//p.setReference();
+	 								RESULT = p;
+									ConceptParseCup.log.info("\tgpat: " + RESULT);
+								:}
+	| TokenList:p	{: RESULT = null;
+										:}
+	| Pat:leftPat AND_OP Pat:rightPat	{:
+										:}
+	| Pat:leftPat OR_OP Pat:rightPat	{:
+										:}
+	 ;
+	
+TokenList ::= String:p					{:	Vector<String> list = new Vector<String>();
+	 								   		list.addElement((String)p);
+	 								   		RESULT = list;
+									   		ConceptParseCup.log.info("\ttoken list first token: " + RESULT);
+	 								 	:}
+	 ;
+	
