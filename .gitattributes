@@ -7,8 +7,6 @@
 .settings/org.eclipse.wst.common.project.facet.core.xml svneol=native#text/xml
 .settings/org.maven.ide.eclipse.prefs -text
 /pom.xml svneol=native#text/xml
-src/main/java/edu/uiowa/NLP_grammar/syntaxMatch/ConceptParseCup.java -text
-src/main/java/edu/uiowa/NLP_grammar/syntaxMatch/ConceptParseSym.java -text
 src/main/java/edu/uiowa/lucene/LuceneCount.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneDelete.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneDocument.java svneol=native#text/x-java-source
