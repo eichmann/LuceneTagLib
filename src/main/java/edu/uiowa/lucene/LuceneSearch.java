@@ -37,6 +37,7 @@ public class LuceneSearch extends BodyTagSupport {
     IndexReader reader = null;
     IndexSearcher theSearcher = null;
     boolean similarity = true;
+    String queryParserName = null;
     
 	public static SimpleFSLockFactory _LockFactory;
     private static final Log log =LogFactory.getLog(LuceneSearch.class);
@@ -56,6 +57,8 @@ public class LuceneSearch extends BodyTagSupport {
             	mlt.setMaxQueryTerms(100);
             	mlt.setFieldNames(new String[] { label });
             	theQuery = mlt.like(new StringReader(queryString));
+            } else if (queryParserName != null) {
+            	// insert magic here
             } else {
                 QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
             	theQuery = theQueryParser.parse(queryString);            	
@@ -128,6 +131,14 @@ public class LuceneSearch extends BodyTagSupport {
 
 	public void setSimilarity(boolean similarity) {
 		this.similarity = similarity;
+	}
+
+	public String getQueryParserName() {
+		return queryParserName;
+	}
+
+	public void setQueryParserName(String queryParserName) {
+		this.queryParserName = queryParserName;
 	}
 
 }
