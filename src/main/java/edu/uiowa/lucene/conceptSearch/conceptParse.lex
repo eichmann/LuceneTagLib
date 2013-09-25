@@ -3,6 +3,7 @@ import java_cup.runtime.*;
 
 %%
 
+%public
 %cup
 %class conceptParseFlex
 %eofval{
@@ -23,10 +24,13 @@ import java_cup.runtime.*;
 \|							{ return (new Symbol(ConceptParseSym.OR_OP, yytext()));
 							}
 
+\!							{ return (new Symbol(ConceptParseSym.NOT_OP, yytext()));
+							}
+
 [\r\n]						{ return (new Symbol(ConceptParseSym.EOF, yytext()));
 							}
 
-[^\(\)\&\| ]+				{ return (new Symbol(ConceptParseSym.String, yytext()));
+[^\(\)\&\|\! ]+				{ return (new Symbol(ConceptParseSym.String, yytext()));
 							}
 
 " "+ { }

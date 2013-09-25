@@ -18,7 +18,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -26,6 +25,8 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similar.MoreLikeThis;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.SimpleFSLockFactory;
+
+import edu.uiowa.lucene.conceptSearch.*;
 
 @SuppressWarnings("serial")
 
@@ -45,20 +46,22 @@ public class LuceneSearch extends BodyTagSupport {
 
     public int doStartTag() throws JspException {
     	log.debug("search called: " + queryString);
+    	log.debug("queryParserName: " + queryParserName);
         try {
         	reader = IndexReader.open(FSDirectory.open(new File(lucenePath), _LockFactory), true);
             theSearcher = new IndexSearcher(reader);
             Query theQuery = null;
             
-            if (similarity) {
+	        if ("concept".equals(queryParserName)) {
+	        	//TODO insert magic here to allow for selection of nomenclature
+	        	theQuery = (Query)(new ConceptParseCup(new conceptParseFlex(new StringReader(queryString)))).parse().value;
+	        } else if (similarity) {
             	MoreLikeThis mlt = new MoreLikeThis(reader);
             	mlt.setMinDocFreq(1);
             	mlt.setMinTermFreq(1);
             	mlt.setMaxQueryTerms(100);
             	mlt.setFieldNames(new String[] { label });
             	theQuery = mlt.like(new StringReader(queryString));
-            } else if (queryParserName != null) {
-            	// insert magic here
             } else {
                 QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
             	theQuery = theQueryParser.parse(queryString);            	
@@ -73,9 +76,9 @@ public class LuceneSearch extends BodyTagSupport {
 			log.error("Corruption Exception", e);
         } catch (IOException e) {
 			log.error("IO Exception", e);
-        }  catch (ParseException e) {
-			log.error("Problem Parseing" + queryString, e);
-        }
+        }  catch (Exception e) {
+			log.error("Problem Parsing" + queryString, e);
+		}
 
         return SKIP_BODY;
     }
@@ -90,7 +93,6 @@ public class LuceneSearch extends BodyTagSupport {
     	return super.doEndTag();		
 	}
 	
-    @SuppressWarnings("unused")
 	private void clearServiceState() {
         this.theHits = null;
         this.label = null;

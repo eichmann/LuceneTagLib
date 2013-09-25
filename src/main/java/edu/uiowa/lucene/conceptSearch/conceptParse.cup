@@ -1,7 +1,10 @@
 package edu.uiowa.lucene.conceptSearch;
+import java.lang.reflect.Method;
 import java.util.*;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,13 +18,14 @@ parser code {:
 :}
 
 terminal LPAREN, RPAREN;
-terminal String, AND_OP, OR_OP;
+terminal String, AND_OP, OR_OP, NOT_OP;
 
 non terminal Query	top, Pat;
 non terminal Vector<String> TokenList;
 
 precedence left OR_OP;
 precedence left AND_OP;
+precedence left NOT_OP;
 
 start with top;
 
@@ -31,24 +35,41 @@ top ::=	Pat:p		{: RESULT = p;
 	;
 
 Pat ::= 
-	| LPAREN Pat:p RPAREN		{: 	//p.setReference();
-	 								RESULT = p;
-									ConceptParseCup.log.info("\tgpat: " + RESULT);
+	| LPAREN Pat:p RPAREN		{: 	RESULT = p;
+									ConceptParseCup.log.info("\tgrouped query: " + RESULT);
 								:}
-	| TokenList:p	{: 
-						StringBuffer buffer = new StringBuffer();
+	| TokenList:p	{:	StringBuffer buffer = new StringBuffer();
 						for (String e : p) {
 							buffer.append(e + " ");
 						}
+						Class theAnalyzerClass = Class.forName("edu.uiowa.emr.ConceptRecognizer");
+						Object theAnalyzer = theAnalyzerClass.newInstance();
+						Class[] paramString = new Class[1];	
+						paramString[0] = String.class;
+						Method method = theAnalyzerClass.getDeclaredMethod("analyzeSentence", paramString);
+						String resultBuffer = (String)method.invoke(theAnalyzer, buffer.toString());
 						QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, "content", new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
-						Query theQuery = theQueryParser.parse(buffer.toString().trim());            	
+						Query theQuery = theQueryParser.parse(resultBuffer);            	
 						RESULT = theQuery;
-						ConceptParseCup.log.info("\ttoken string: " + buffer.toString().trim() + "\tquery: " + RESULT);
+						ConceptParseCup.log.info("\ttoken string: " + resultBuffer + "\tquery: " + RESULT);
 					:}
-	| Pat:leftPat AND_OP Pat:rightPat	{:
+	| Pat:leftPat AND_OP Pat:rightPat	{:	Query theQuery = new BooleanQuery();
+											((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.MUST);
+											((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.MUST);
+											RESULT = theQuery;
+											ConceptParseCup.log.info("\tand query: " + RESULT);
 										:}
-	| Pat:leftPat OR_OP Pat:rightPat	{:
+	| Pat:leftPat OR_OP Pat:rightPat	{:	Query theQuery = new BooleanQuery();
+											((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.SHOULD);
+											((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.SHOULD);
+											RESULT = theQuery;
+											ConceptParseCup.log.info("\tor query: " + RESULT);
 										:}
+	| NOT_OP Pat:p	{:	Query theQuery = new BooleanQuery();
+						((BooleanQuery)theQuery).add(p, BooleanClause.Occur.MUST_NOT);
+						RESULT = theQuery;
+						ConceptParseCup.log.info("\tnot query: " + RESULT);
+					:}
 	 ;
 	
 TokenList ::= TokenList:p1  String:p2	{:	p1.addElement((String)p2);
