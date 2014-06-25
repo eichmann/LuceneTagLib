@@ -26,6 +26,7 @@ import org.apache.lucene.search.similar.MoreLikeThis;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.SimpleFSLockFactory;
 
+import edu.uiowa.lucene.booleanSearch.*;
 import edu.uiowa.lucene.conceptSearch.*;
 
 @SuppressWarnings("serial")
@@ -55,6 +56,8 @@ public class LuceneSearch extends BodyTagSupport {
 	        if ("concept".equals(queryParserName)) {
 	        	//TODO insert magic here to allow for selection of nomenclature
 	        	theQuery = (Query)(new ConceptParseCup(new conceptParseFlex(new StringReader(queryString)))).parse().value;
+	        } else if ("boolean".equals(queryParserName)) {
+	        	theQuery = (Query)(new BooleanParseCup(new booleanParseFlex(new StringReader(queryString)))).parse().value;
 	        } else if (similarity) {
             	MoreLikeThis mlt = new MoreLikeThis(reader);
             	mlt.setMinDocFreq(1);

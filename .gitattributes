@@ -16,6 +16,11 @@ src/main/java/edu/uiowa/lucene/LuceneHit.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneIndex.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneIterator.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneSearch.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/booleanSearch/BooleanParseCup.java -text
+src/main/java/edu/uiowa/lucene/booleanSearch/BooleanParseSym.java -text
+src/main/java/edu/uiowa/lucene/booleanSearch/booleanParse.cup -text
+src/main/java/edu/uiowa/lucene/booleanSearch/booleanParse.lex -text
+src/main/java/edu/uiowa/lucene/booleanSearch/booleanParseFlex.java -text
 src/main/java/edu/uiowa/lucene/conceptSearch/ConceptParseCup.java -text
 src/main/java/edu/uiowa/lucene/conceptSearch/ConceptParseSym.java -text
 src/main/java/edu/uiowa/lucene/conceptSearch/conceptParse.cup -text
