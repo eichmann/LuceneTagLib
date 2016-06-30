@@ -16,6 +16,7 @@ public class LuceneDocument extends BodyTagSupport {
     Document theDocument = null;
     
 	public static SimpleFSLockFactory _LockFactory;
+    @SuppressWarnings("unused")
     private static final Log log =LogFactory.getLog(LuceneDocument.class);
 
     public int doStartTag() throws JspException {

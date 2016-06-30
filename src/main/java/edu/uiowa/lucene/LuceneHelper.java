@@ -24,6 +24,7 @@ public class LuceneHelper {
 	 * @param field
 	 * @param value
 	 */
+	@SuppressWarnings("deprecation")
 	public static synchronized void deleteIndex(String lucenePath, String field, String value) {
 		log.debug("Starting Delete Operation");
 		try {
@@ -51,6 +52,7 @@ public class LuceneHelper {
 	 * @param lucenePath
 	 * @param truncate
 	 */
+	@SuppressWarnings("deprecation")
 	public static synchronized void updateIndex(String lucenePath, boolean truncate) {
 		IndexWriter theWriter = null;
 		log.debug("Starting Index Operation");
@@ -89,6 +91,7 @@ public class LuceneHelper {
 	 * @param lucenePath
 	 * @param theDocument
 	 */
+	@SuppressWarnings("deprecation")
 	public static synchronized void updateDocument(String lucenePath, Document theDocument) {
 		log.debug("Starting Write Index");
 

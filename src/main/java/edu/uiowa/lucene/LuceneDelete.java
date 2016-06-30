@@ -19,6 +19,7 @@ public class LuceneDelete extends BodyTagSupport {
     Document theDocument = null;
     
 	public static SimpleFSLockFactory _LockFactory;
+    @SuppressWarnings("unused")
     private static final Log log =LogFactory.getLog(LuceneDelete.class);
 
 	

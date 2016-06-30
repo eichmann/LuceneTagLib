@@ -45,6 +45,7 @@ public class LuceneSearch extends BodyTagSupport {
     private static final Log log =LogFactory.getLog(LuceneSearch.class);
 
 
+    @SuppressWarnings("deprecation")
     public int doStartTag() throws JspException {
     	log.debug("search called: " + queryString);
     	log.debug("queryParserName: " + queryParserName);
@@ -93,6 +94,7 @@ public class LuceneSearch extends BodyTagSupport {
 		} catch (IOException e) {
 			log.error("Corruption Exception", e);
 		}
+        clearServiceState();
     	return super.doEndTag();		
 	}
 	
