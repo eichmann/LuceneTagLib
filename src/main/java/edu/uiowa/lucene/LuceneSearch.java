@@ -70,6 +70,8 @@ public class LuceneSearch extends BodyTagSupport {
                 QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
             	theQuery = theQueryParser.parse(queryString);            	
             }
+	        
+	   log.debug("actual query: " + theQuery);
             
             theHits = theSearcher.search(theQuery, 1000);
             
