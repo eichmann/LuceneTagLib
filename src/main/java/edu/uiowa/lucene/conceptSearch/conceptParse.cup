@@ -51,35 +51,35 @@ Pat ::=
 						QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, "content", new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
 						Query theQuery = theQueryParser.parse(resultBuffer);            	
 						RESULT = theQuery;
-						ConceptParseCup.log.info("\ttoken string: " + resultBuffer + "\tquery: " + RESULT);
+						ConceptParseCup.log.debug("\ttoken string: " + resultBuffer + "\tquery: " + RESULT);
 					:}
 	| Pat:leftPat AND_OP Pat:rightPat	{:	Query theQuery = new BooleanQuery();
 											((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.MUST);
 											((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.MUST);
 											RESULT = theQuery;
-											ConceptParseCup.log.info("\tand query: " + RESULT);
+											ConceptParseCup.log.debug("\tand query: " + RESULT);
 										:}
 	| Pat:leftPat OR_OP Pat:rightPat	{:	Query theQuery = new BooleanQuery();
 											((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.SHOULD);
 											((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.SHOULD);
 											RESULT = theQuery;
-											ConceptParseCup.log.info("\tor query: " + RESULT);
+											ConceptParseCup.log.debug("\tor query: " + RESULT);
 										:}
 	| NOT_OP Pat:p	{:	Query theQuery = new BooleanQuery();
 						((BooleanQuery)theQuery).add(p, BooleanClause.Occur.MUST_NOT);
 						RESULT = theQuery;
-						ConceptParseCup.log.info("\tnot query: " + RESULT);
+						ConceptParseCup.log.debug("\tnot query: " + RESULT);
 					:}
 	 ;
 	
 TokenList ::= TokenList:p1  String:p2	{:	p1.addElement((String)p2);
 									   		RESULT = p1;
-									   		ConceptParseCup.log.info("\ttoken list: " + RESULT);
+									   		ConceptParseCup.log.debug("\ttoken list: " + RESULT);
 	 								 	:}
 	 		|   String:p				{:	Vector<String> list = new Vector<String>();
 	 								   		list.addElement((String)p);
 	 								   		RESULT = list;
-									   		ConceptParseCup.log.info("\ttoken list first token: " + RESULT);
+									   		ConceptParseCup.log.debug("\ttoken list first token: " + RESULT);
 	 								 	:}
 		 ;
 	
