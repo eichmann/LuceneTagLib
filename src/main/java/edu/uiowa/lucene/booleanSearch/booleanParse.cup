@@ -1,6 +1,5 @@
 package edu.uiowa.lucene.booleanSearch;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.search.Query;

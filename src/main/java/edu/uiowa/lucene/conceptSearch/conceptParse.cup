@@ -42,7 +42,7 @@ Pat ::=
 						for (String e : p) {
 							buffer.append(e + " ");
 						}
-						Class theAnalyzerClass = Class.forName("edu.uiowa.emr.ConceptRecognizer");
+						Class<?> theAnalyzerClass = Class.forName("edu.uiowa.emr.ConceptRecognizer");
 						Object theAnalyzer = theAnalyzerClass.newInstance();
 						Class[] paramString = new Class[1];	
 						paramString[0] = String.class;
