@@ -13,6 +13,7 @@ src/main/java/edu/uiowa/lucene/LuceneDocument.java svneol=native#text/x-java-sou
 src/main/java/edu/uiowa/lucene/LuceneField.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneHelper.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneHit.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneHitRank.java -text
 src/main/java/edu/uiowa/lucene/LuceneIndex.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneIterator.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneSearch.java svneol=native#text/x-java-source

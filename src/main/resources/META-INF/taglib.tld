@@ -133,6 +133,12 @@
 		</attribute>
 	</tag>
 	
+    <tag>
+        <name>hitRank</name>
+        <tag-class>edu.uiowa.lucene.LuceneHitRank</tag-class>
+        <body-content>empty</body-content>
+    </tag>
+    
 	<tag>
 		<name>delete</name>
 		<tag-class>edu.uiowa.lucene.LuceneDelete</tag-class>
