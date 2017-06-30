@@ -31,104 +31,116 @@ public class LuceneIterator extends BodyTagSupport {
     String label = null;
 
     int limitCriteria = 0;
+    int startCriteria = 1;
     double thresholdCriteria = 0.0;
-    private static final Log log =LogFactory.getLog(LuceneIterator.class);
+    private static final Log log = LogFactory.getLog(LuceneIterator.class);
 
-    
     public int doStartTag() throws JspException {
-    	log.debug("limit: " + limitCriteria);
-    	log.debug("threshold: " + thresholdCriteria);
-	    theSearch = (LuceneSearch)findAncestorWithClass(this, LuceneSearch.class);
-		
-		if (theSearch == null) {
-			throw new JspTagException("Lucene Hit tag not nesting in Search instance");
+	log.debug("limit: " + limitCriteria);
+	log.debug("start: " + startCriteria);
+	log.debug("threshold: " + thresholdCriteria);
+	theSearch = (LuceneSearch) findAncestorWithClass(this, LuceneSearch.class);
+
+	if (theSearch == null) {
+	    throw new JspTagException("Lucene Hit tag not nesting in Search instance");
+	}
+
+	try {
+	    if (startCriteria < 1) // a missing parameter in the requesting URL results in this getting set to 0.
+		startCriteria = 1;
+	    hitFence = startCriteria - 1;
+	    theHits = theSearch.theHits;
+	    if (hitFence < theHits.scoreDocs.length) {
+		theHit = theHits.scoreDocs[hitFence++];
+		thresholdFence = theHit.score;
+		theDocument = theSearch.theSearcher.doc(theHit.doc);
+
+		if (thresholdFence < thresholdCriteria) {
+		    clearServiceState();
+		    return SKIP_BODY;
 		}
-		
-        try {
-            theHits = theSearch.theHits;
-            if (hitFence < theHits.scoreDocs.length) {
-                theHit = theHits.scoreDocs[hitFence++];
-                thresholdFence = theHit.score;
-                theDocument = theSearch.theSearcher.doc(theHit.doc);
 
-                if (thresholdFence < thresholdCriteria) {
-                    clearServiceState();
-                    return SKIP_BODY;
-                }
-                
-                return EVAL_BODY_INCLUDE;
-            }
-        } catch (CorruptIndexException e) {
-			log.error("Corruption Exception", e);
+		return EVAL_BODY_INCLUDE;
+	    }
+	} catch (CorruptIndexException e) {
+	    log.error("Corruption Exception", e);
 
-        } catch (IOException e) {
-			log.error("IO Exception", e);
+	} catch (IOException e) {
+	    log.error("IO Exception", e);
 
-        }
+	}
 
-        return SKIP_BODY;
+	return SKIP_BODY;
     }
 
     public int doAfterBody() throws JspTagException {
-        if (limitCriteria > 0 && hitFence >= limitCriteria) {
-            clearServiceState();
-            return SKIP_BODY;
-        }
-        
-        if (hitFence < theHits.scoreDocs.length) {
-            theHit = theHits.scoreDocs[hitFence++];
-            thresholdFence = theHit.score;
+	if (limitCriteria > 0 && hitFence >= limitCriteria + startCriteria - 1) {
+	    clearServiceState();
+	    return SKIP_BODY;
+	}
 
-            if (thresholdFence < thresholdCriteria) {
-                clearServiceState();
-                return SKIP_BODY;
-            }
-            
-            try {
-				theDocument = theSearch.theSearcher.doc(theHit.doc);
-			} catch (CorruptIndexException e) {
-				log.error("Corruption Exception", e);
+	if (hitFence < theHits.scoreDocs.length) {
+	    theHit = theHits.scoreDocs[hitFence++];
+	    thresholdFence = theHit.score;
 
-				throw(new JspTagException(e.toString()));
-			} catch (IOException e) {
-				log.error("IO Exception", e);
-				throw(new JspTagException(e.toString()));
-			}
-            return EVAL_BODY_AGAIN;
-        }
-        clearServiceState();
-        return SKIP_BODY;
+	    if (thresholdFence < thresholdCriteria) {
+		clearServiceState();
+		return SKIP_BODY;
+	    }
+
+	    try {
+		theDocument = theSearch.theSearcher.doc(theHit.doc);
+	    } catch (CorruptIndexException e) {
+		log.error("Corruption Exception", e);
+
+		throw (new JspTagException(e.toString()));
+	    } catch (IOException e) {
+		log.error("IO Exception", e);
+		throw (new JspTagException(e.toString()));
+	    }
+	    return EVAL_BODY_AGAIN;
+	}
+	clearServiceState();
+	return SKIP_BODY;
     }
 
     private void clearServiceState() {
-        this.theHits = null;
-        this.label = null;
-        theHit = null;
-        hitFence = 0;
+	this.theHits = null;
+	this.label = null;
+	theHit = null;
+	hitFence = 0;
     }
 
     public String getLabel() {
-        return label;
+	return label;
     }
 
     public void setLabel(String label) {
-        this.label = label;
+	this.label = label;
     }
 
     public int getLimitCriteria() {
-        return limitCriteria;
+	return limitCriteria;
     }
 
     public void setLimitCriteria(int limitCriteria) {
-        this.limitCriteria = limitCriteria;
+	this.limitCriteria = limitCriteria;
     }
 
-	public double getThresholdCriteria() {
-		return thresholdCriteria;
-	}
+    public double getThresholdCriteria() {
+	return thresholdCriteria;
+    }
 
-	public void setThresholdCriteria(double thresholdCriteria) {
-		this.thresholdCriteria = thresholdCriteria;
-	}
+    public void setThresholdCriteria(double thresholdCriteria) {
+	this.thresholdCriteria = thresholdCriteria;
+    }
+
+    public int getStartCriteria() {
+	return startCriteria;
+    }
+
+    public void setStartCriteria(int startCriteria) {
+	this.startCriteria = startCriteria;
+    }
 
 }

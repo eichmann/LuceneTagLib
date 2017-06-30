@@ -114,6 +114,12 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 
+        <attribute>
+            <name>startCriteria</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+
 		<attribute>
 			<name>thresholdCriteria</name>
 			<required>false</required>
