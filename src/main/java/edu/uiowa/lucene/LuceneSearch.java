@@ -47,8 +47,8 @@ public class LuceneSearch extends BodyTagSupport {
 
     @SuppressWarnings("deprecation")
     public int doStartTag() throws JspException {
-    	log.debug("search called: " + queryString);
-    	log.debug("queryParserName: " + queryParserName);
+    	log.info("search called: " + queryString);
+    	log.info("queryParserName: " + queryParserName);
         try {
         	reader = IndexReader.open(FSDirectory.open(new File(lucenePath), _LockFactory), true);
             theSearcher = new IndexSearcher(reader);
@@ -71,7 +71,7 @@ public class LuceneSearch extends BodyTagSupport {
             	theQuery = theQueryParser.parse(queryString);            	
             }
 	        
-	   log.debug("actual query: " + theQuery);
+	   log.info("actual query: " + theQuery);
             
             theHits = theSearcher.search(theQuery, 1000);
             
