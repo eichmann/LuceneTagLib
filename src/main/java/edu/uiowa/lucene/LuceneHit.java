@@ -16,61 +16,62 @@ public class LuceneHit extends BodyTagSupport {
     LuceneSearch theSearch = null;
     LuceneIterator theIterator = null;
     boolean keyField = false;
-	String label = null;
-	String value = null;
-    private static final Log log =LogFactory.getLog(LuceneHit.class);
+    String label = null;
+    String value = null;
+    private static final Log log = LogFactory.getLog(LuceneHit.class);
 
-	
-	public int doStartTag() throws JspTagException {
-	    theSearch = (LuceneSearch)findAncestorWithClass(this, LuceneSearch.class);
-	    theIterator = (LuceneIterator)findAncestorWithClass(this, LuceneIterator.class);
-		
-		if (theSearch == null) {
-			throw new JspTagException("Lucene Hit tag not nesting in Search instance");
-		}
-		
-        try {
-            if (label.equals("score"))
-                pageContext.getOut().print(theIterator.theHit.score);
-            else {
-                pageContext.getOut().print(theIterator.theDocument.get(label));
-//                System.out.println("target: " + theSearch.theDocument.get(label) + "\tscore: " + theSearch.theHit.getScore());
-            }
-        } catch (CorruptIndexException e) {
-			log.error("Corruption Exception", e);
-        } catch (IOException e) {
-			log.error("IO Exception", e);
-        }
-		
-		return SKIP_BODY;
-	}
-	
-	public int doEndTag() throws JspException {
-	    return super.doEndTag();        
-	}
-	
-	public boolean isKeyField() {
-		return keyField;
+    public int doStartTag() throws JspTagException {
+	theSearch = (LuceneSearch) findAncestorWithClass(this, LuceneSearch.class);
+	theIterator = (LuceneIterator) findAncestorWithClass(this, LuceneIterator.class);
+
+	if (theSearch == null) {
+	    throw new JspTagException("Lucene Hit tag not nesting in Search instance");
 	}
 
-	public void setKeyField(boolean keyField) {
-		this.keyField = keyField;
+	try {
+	    if (label.equals("score"))
+		pageContext.getOut().print(theIterator.theHit.score);
+	    else {
+		pageContext.getOut().print(theIterator.theDocument.get(label));
+		// System.out.println("target: " +
+		// theSearch.theDocument.get(label) + "\tscore: " +
+		// theSearch.theHit.getScore());
+	    }
+	} catch (CorruptIndexException e) {
+	    log.error("Corruption Exception", e);
+	} catch (IOException e) {
+	    log.error("IO Exception", e);
 	}
 
-	public String getLabel() {
-		return label;
-	}
+	return SKIP_BODY;
+    }
 
-	public void setLabel(String label) {
-		this.label = label;
-	}
+    public int doEndTag() throws JspException {
+	return super.doEndTag();
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public boolean isKeyField() {
+	return keyField;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setKeyField(boolean keyField) {
+	this.keyField = keyField;
+    }
+
+    public String getLabel() {
+	return label;
+    }
+
+    public void setLabel(String label) {
+	this.label = label;
+    }
+
+    public String getValue() {
+	return value;
+    }
+
+    public void setValue(String value) {
+	this.value = value;
+    }
 
 }

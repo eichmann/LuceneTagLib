@@ -44,18 +44,18 @@ public class LuceneSearch extends BodyTagSupport {
     public static SimpleFSLockFactory _LockFactory;
     private static final Log log = LogFactory.getLog(LuceneSearch.class);
     private static Pattern datePattern = Pattern.compile("([0-9]{4})-([0-9]{4})");
-    
+
     public static void main(String[] args) {
 	String originalQuery = "Robert Burton, Robert 1925-1984";
 	log.info("originalQuery:" + originalQuery);
 	log.info("asConjunctiveQuery: " + asConjunctiveQuery(originalQuery));
 	log.info("asConjunctiveQuery w/ date hack: " + asConjunctiveQuery(originalQuery, true));
     }
-    
+
     public static String asConjunctiveQuery(String originalQuery) {
 	return asConjunctiveQuery(originalQuery, false);
     }
-    
+
     public static String asConjunctiveQuery(String originalQuery, boolean useDateHack) {
 	StringBuffer buffer = new StringBuffer();
 
@@ -69,10 +69,10 @@ public class LuceneSearch extends BodyTagSupport {
 		} else
 		    buffer.append(term);
 	    } else {
-		buffer.append(term);		
+		buffer.append(term);
 	    }
 	}
-	
+
 	return buffer.toString().trim();
     }
 
@@ -101,9 +101,10 @@ public class LuceneSearch extends BodyTagSupport {
 		mlt.setMaxQueryTerms(100);
 		mlt.setFieldNames(new String[] { label });
 		mlt.setAnalyzer(new StandardAnalyzer(Version.LUCENE_43));
-		theQuery = mlt.like(new StringReader(queryString),"content");
+		theQuery = mlt.like(new StringReader(queryString), "content");
 	    } else {
-		org.apache.lucene.queryparser.classic.QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
+		org.apache.lucene.queryparser.classic.QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label,
+			new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
 		theQuery = theQueryParser.parse(queryString);
 	    }
 
@@ -186,19 +187,19 @@ public class LuceneSearch extends BodyTagSupport {
     }
 
     public boolean getUseConjunctionByDefault() {
-        return useConjunctionByDefault;
+	return useConjunctionByDefault;
     }
 
     public void setUseConjunctionByDefault(boolean useConjunctionByDefault) {
-        this.useConjunctionByDefault = useConjunctionByDefault;
+	this.useConjunctionByDefault = useConjunctionByDefault;
     }
 
     public boolean getUseDateHack() {
-        return useDateHack;
+	return useDateHack;
     }
 
     public void setUseDateHack(boolean useDateHack) {
-        this.useDateHack = useDateHack;
+	this.useDateHack = useDateHack;
     }
 
 }

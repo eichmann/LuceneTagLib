@@ -46,7 +46,8 @@ public class LuceneIterator extends BodyTagSupport {
 	}
 
 	try {
-	    if (startCriteria < 1) // a missing parameter in the requesting URL results in this getting set to 0.
+	    if (startCriteria < 1) // a missing parameter in the requesting URL
+				   // results in this getting set to 0.
 		startCriteria = 1;
 	    hitFence = startCriteria - 1;
 	    theHits = theSearch.theHits;

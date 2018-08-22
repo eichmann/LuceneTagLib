@@ -12,45 +12,44 @@ import org.apache.lucene.store.SimpleFSLockFactory;
 @SuppressWarnings("serial")
 
 public class LuceneDelete extends BodyTagSupport {
-	String lucenePath = null;
-	String field = null;
-	String value = null;
-	IndexWriter theWriter = null;
+    String lucenePath = null;
+    String field = null;
+    String value = null;
+    IndexWriter theWriter = null;
     Document theDocument = null;
-    
-	public static SimpleFSLockFactory _LockFactory;
+
+    public static SimpleFSLockFactory _LockFactory;
     @SuppressWarnings("unused")
-    private static final Log log =LogFactory.getLog(LuceneDelete.class);
+    private static final Log log = LogFactory.getLog(LuceneDelete.class);
 
-	
-	public int doStartTag() throws JspException {
-		
-		LuceneHelper.deleteIndex(lucenePath, field, value);
-		return EVAL_PAGE;
-	}
-	
-	public String getLucenePath() {
-		return lucenePath;
-	}
+    public int doStartTag() throws JspException {
 
-	public void setLucenePath(String lucenePath) {
-		this.lucenePath = lucenePath;
-	}
+	LuceneHelper.deleteIndex(lucenePath, field, value);
+	return EVAL_PAGE;
+    }
 
-	public String getField() {
-		return field;
-	}
+    public String getLucenePath() {
+	return lucenePath;
+    }
 
-	public void setField(String field) {
-		this.field = field;
-	}
+    public void setLucenePath(String lucenePath) {
+	this.lucenePath = lucenePath;
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public String getField() {
+	return field;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setField(String field) {
+	this.field = field;
+    }
+
+    public String getValue() {
+	return value;
+    }
+
+    public void setValue(String value) {
+	this.value = value;
+    }
 
 }

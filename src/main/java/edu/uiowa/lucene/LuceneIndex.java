@@ -9,40 +9,40 @@ import org.apache.lucene.index.IndexWriter;
 @SuppressWarnings("serial")
 
 public class LuceneIndex extends BodyTagSupport {
-	String lucenePath = null;
-	IndexWriter theWriter = null;
+    String lucenePath = null;
+    IndexWriter theWriter = null;
     Document theDocument = null;
     boolean truncate = false;
-    
-	//public static SimpleFSLockFactory _LockFactory;
-    //private static final Log log =LogFactory.getLog(LuceneIndex.class);
-    //static Lock writeLock = new ReentrantLock();
-	
-	public int doStartTag() throws JspException {
-		
-		LuceneHelper.updateIndex(lucenePath, truncate);
-	
-		return EVAL_PAGE;
-	}
-	
-	public int doEndTag() throws JspException {
-    	return super.doEndTag();		
-	}
 
-	public String getLucenePath() {
-		return lucenePath;
-	}
+    // public static SimpleFSLockFactory _LockFactory;
+    // private static final Log log =LogFactory.getLog(LuceneIndex.class);
+    // static Lock writeLock = new ReentrantLock();
 
-	public void setLucenePath(String lucenePath) {
-		this.lucenePath = lucenePath;
-	}
+    public int doStartTag() throws JspException {
+
+	LuceneHelper.updateIndex(lucenePath, truncate);
+
+	return EVAL_PAGE;
+    }
+
+    public int doEndTag() throws JspException {
+	return super.doEndTag();
+    }
+
+    public String getLucenePath() {
+	return lucenePath;
+    }
+
+    public void setLucenePath(String lucenePath) {
+	this.lucenePath = lucenePath;
+    }
 
     public boolean getTruncate() {
-        return truncate;
+	return truncate;
     }
 
     public void setTruncate(boolean truncate) {
-        this.truncate = truncate;
+	this.truncate = truncate;
     }
 
 }
