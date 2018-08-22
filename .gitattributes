@@ -5,6 +5,7 @@
 .settings/org.eclipse.m2e.core.prefs -text svneol=unset#text/plain
 .settings/org.eclipse.wst.common.component -text
 .settings/org.eclipse.wst.common.project.facet.core.xml svneol=native#text/xml
+.settings/org.eclipse.wst.validation.prefs -text
 .settings/org.maven.ide.eclipse.prefs -text
 /pom.xml svneol=native#text/xml
 src/main/java/edu/uiowa/lucene/LuceneCount.java svneol=native#text/x-java-source

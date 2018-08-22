@@ -51,6 +51,7 @@ public class LuceneField extends BodyTagSupport {
 	    return super.doEndTag();        
 	}
 	
+    @SuppressWarnings("deprecation")
     private void addField(String content) {
         if (content != null && content.length() > 0) {
             if (keyField) {

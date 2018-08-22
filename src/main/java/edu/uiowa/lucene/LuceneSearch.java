@@ -11,17 +11,18 @@ import javax.servlet.jsp.tagext.BodyTagSupport;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.PropertyConfigurator;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.queries.mlt.MoreLikeThis;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.similar.MoreLikeThis;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.SimpleFSLockFactory;
+import org.apache.lucene.util.Version;
 
 import edu.uiowa.lucene.booleanSearch.*;
 import edu.uiowa.lucene.conceptSearch.*;
@@ -84,7 +85,7 @@ public class LuceneSearch extends BodyTagSupport {
 	}
 	log.info("queryParserName: " + queryParserName);
 	try {
-	    reader = IndexReader.open(FSDirectory.open(new File(lucenePath), _LockFactory), true);
+	    reader = DirectoryReader.open(FSDirectory.open(new File(lucenePath)));
 	    theSearcher = new IndexSearcher(reader);
 	    Query theQuery = null;
 
@@ -99,9 +100,10 @@ public class LuceneSearch extends BodyTagSupport {
 		mlt.setMinTermFreq(1);
 		mlt.setMaxQueryTerms(100);
 		mlt.setFieldNames(new String[] { label });
-		theQuery = mlt.like(new StringReader(queryString));
+		mlt.setAnalyzer(new StandardAnalyzer(Version.LUCENE_43));
+		theQuery = mlt.like(new StringReader(queryString),"content");
 	    } else {
-		QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
+		org.apache.lucene.queryparser.classic.QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
 		theQuery = theQueryParser.parse(queryString);
 	    }
 
@@ -125,7 +127,6 @@ public class LuceneSearch extends BodyTagSupport {
 
     public int doEndTag() throws JspException {
 	try {
-	    theSearcher.close();
 	    reader.close();
 	} catch (IOException e) {
 	    log.error("Corruption Exception", e);
