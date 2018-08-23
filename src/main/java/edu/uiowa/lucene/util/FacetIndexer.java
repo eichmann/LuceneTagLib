@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -31,6 +33,7 @@ public class FacetIndexer {
     static Connection conn = null;
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
+        PropertyConfigurator.configure("log4j.info");
 	conn = getConnection();
 	indexDir = FSDirectory.open(new File("/usr/local/CD2H/lucene/facet_test"));
 	taxoDir = FSDirectory.open(new File("/usr/local/CD2H/lucene/facet_test_tax"));
@@ -52,7 +55,8 @@ public class FacetIndexer {
     
     @SuppressWarnings("deprecation")
     static void indexVIVO(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
-	PreparedStatement stmt = conn.prepareStatement("select id,site,uri,first_name,last_name,title,ctsa from vivo_aggregated.person natural join vivo.site order by site,last_name,first_name");
+	logger.info("indexing VIVO...");
+	PreparedStatement stmt = conn.prepareStatement("select distinct person.id,site,uri,first_name,last_name,title,ctsa from vivo_aggregated.person,vivo.site where person.id=site.id and person.id!=44 order by site,last_name,first_name");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String site = rs.getString(2);
@@ -68,17 +72,24 @@ public class FacetIndexer {
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
 	    
 	    theDocument.add(new Field("uri", uri, Field.Store.YES, Field.Index.NOT_ANALYZED));
-	    theDocument.add(new Field("first_name", firstName, Field.Store.YES, Field.Index.ANALYZED));
-	    theDocument.add(new Field("content", firstName, Field.Store.NO, Field.Index.ANALYZED));
+	    if (firstName != null ) {
+		theDocument.add(new Field("first_name", firstName, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", firstName, Field.Store.NO, Field.Index.ANALYZED));
+	    }
 	    theDocument.add(new Field("last_name", lastName, Field.Store.YES, Field.Index.ANALYZED));
 	    theDocument.add(new Field("content", lastName, Field.Store.NO, Field.Index.ANALYZED));
-	    theDocument.add(new Field("title", title, Field.Store.YES, Field.Index.ANALYZED));
-	    theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
 	    if (title == null)
 		paths.add(new CategoryPath("Person/VIVO", '/'));
-	    else
-		paths.add(new CategoryPath("Person/VIVO/"+title, '/'));
-		
+	    else {
+		theDocument.add(new Field("title", title, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+		try {
+		    paths.add(new CategoryPath("Person/VIVO/"+title, '/'));
+		} catch (Exception e) {
+		    logger.error("error adding title facet", e);
+		}
+	    }
+	    
 	    theDocument.add(new Field("site", site, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    theDocument.add(new Field("content", site, Field.Store.NO, Field.Index.ANALYZED));
 	    paths.add(new CategoryPath("Site/"+site, '/'));
@@ -94,8 +105,8 @@ public class FacetIndexer {
     public static Connection getConnection() throws SQLException, ClassNotFoundException {
 	Class.forName("org.postgresql.Driver");
 	Properties props = new Properties();
-	props.setProperty("user", "");
-	props.setProperty("password", "");
+	props.setProperty("user", "eichmann");
+	props.setProperty("password", "translational");
 //	if (use_ssl.equals("true")) {
 //	    props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
 //	    props.setProperty("ssl", "true");
