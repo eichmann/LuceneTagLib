@@ -61,6 +61,60 @@
 		</attribute>
 	</tag>
 	
+    <tag>
+        <name>taxonomy</name>
+        <tag-class>edu.uiowa.lucene.LuceneTaxonomy</tag-class>
+        <body-content>JSP</body-content>
+
+        <attribute>
+            <name>taxonomyPath</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+
+    <tag>
+        <name>countFacetRequest</name>
+        <tag-class>edu.uiowa.lucene.LuceneCountFacetRequest</tag-class>
+        <body-content>JSP</body-content>
+
+        <attribute>
+            <name>categoryPath</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+
+        <attribute>
+            <name>resultCount</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+
+        <attribute>
+            <name>depth</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+    
+    <tag>
+        <name>facetIterator</name>
+        <tag-class>edu.uiowa.lucene.LuceneFacetIterator</tag-class>
+        <body-content>JSP</body-content>
+    </tag>
+
+    <tag>
+        <name>facet</name>
+        <tag-class>edu.uiowa.lucene.LuceneFacet</tag-class>
+        <body-content>JSP</body-content>
+
+        <attribute>
+            <name>label</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+    
 	<tag>
 		<name>search</name>
 		<tag-class>edu.uiowa.lucene.LuceneSearch</tag-class>

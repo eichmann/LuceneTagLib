@@ -3,6 +3,7 @@ package edu.uiowa.lucene;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,6 +13,9 @@ import javax.servlet.jsp.tagext.BodyTagSupport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.facet.params.FacetSearchParams;
+import org.apache.lucene.facet.search.FacetResult;
+import org.apache.lucene.facet.search.FacetsCollector;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -30,6 +34,10 @@ import edu.uiowa.lucene.conceptSearch.*;
 @SuppressWarnings("serial")
 
 public class LuceneSearch extends BodyTagSupport {
+    LuceneTaxonomy theTaxonomy = null;
+    FacetsCollector facetCollector = null;
+    List<FacetResult> facetResults = null;
+    
     TopDocs theHits = null;
     String label = null;
     String lucenePath = null;
@@ -79,15 +87,26 @@ public class LuceneSearch extends BodyTagSupport {
     @SuppressWarnings("deprecation")
     public int doStartTag() throws JspException {
 	log.info("search called: " + queryString);
+	
+	theTaxonomy = (LuceneTaxonomy) findAncestorWithClass(this, LuceneTaxonomy.class);
+
 	if (useConjunctionByDefault) {
 	    queryString = asConjunctiveQuery(queryString, useDateHack);
 	    log.info("rewriting query to: " + queryString);
 	}
 	log.info("queryParserName: " + queryParserName);
+	
 	try {
 	    reader = DirectoryReader.open(FSDirectory.open(new File(lucenePath)));
 	    theSearcher = new IndexSearcher(reader);
 	    Query theQuery = null;
+
+	    if (theTaxonomy != null) {
+		theTaxonomy.fsp = new FacetSearchParams(theTaxonomy.facetRequests);
+		facetCollector = FacetsCollector.create(theTaxonomy.fsp, theSearcher.getIndexReader(), theTaxonomy.taxoReader);
+		log.info("taxonomy: " + theTaxonomy);
+		log.info("facet collector: " + facetCollector);
+	    }
 
 	    if ("concept".equals(queryParserName)) {
 		// TODO insert magic here to allow for selection of nomenclature
@@ -110,7 +129,14 @@ public class LuceneSearch extends BodyTagSupport {
 
 	    log.info("actual query: " + theQuery);
 
-	    theHits = theSearcher.search(theQuery, 1000);
+	    if (theTaxonomy == null) {
+		theHits = theSearcher.search(theQuery, 1000);
+	    } else {
+		log.info("facet query: " + theQuery);
+		theSearcher.search(theQuery, facetCollector);
+		facetResults = facetCollector.getFacetResults();
+		theHits = theSearcher.search(theQuery, 1000);		
+	    }
 
 	    log.debug(theHits.totalHits);
 
@@ -123,7 +149,7 @@ public class LuceneSearch extends BodyTagSupport {
 	    log.error("Problem Parsing" + queryString, e);
 	}
 
-	return SKIP_BODY;
+	return EVAL_BODY_INCLUDE;
     }
 
     public int doEndTag() throws JspException {
@@ -200,6 +226,10 @@ public class LuceneSearch extends BodyTagSupport {
 
     public void setUseDateHack(boolean useDateHack) {
 	this.useDateHack = useDateHack;
+    }
+
+    public List<FacetResult> getFacetResults() {
+	return facetResults;
     }
 
 }

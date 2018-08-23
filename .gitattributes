@@ -9,8 +9,11 @@
 .settings/org.maven.ide.eclipse.prefs -text
 /pom.xml svneol=native#text/xml
 src/main/java/edu/uiowa/lucene/LuceneCount.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneCountFacetRequest.java -text
 src/main/java/edu/uiowa/lucene/LuceneDelete.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneDocument.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneFacet.java -text
+src/main/java/edu/uiowa/lucene/LuceneFacetIterator.java -text
 src/main/java/edu/uiowa/lucene/LuceneField.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneHelper.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneHit.java svneol=native#text/x-java-source
@@ -18,6 +21,7 @@ src/main/java/edu/uiowa/lucene/LuceneHitRank.java -text
 src/main/java/edu/uiowa/lucene/LuceneIndex.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneIterator.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneSearch.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneTaxonomy.java -text
 src/main/java/edu/uiowa/lucene/booleanSearch/BooleanParseCup.java -text
 src/main/java/edu/uiowa/lucene/booleanSearch/BooleanParseSym.java -text
 src/main/java/edu/uiowa/lucene/booleanSearch/booleanParse.cup -text
@@ -28,6 +32,8 @@ src/main/java/edu/uiowa/lucene/conceptSearch/ConceptParseSym.java -text
 src/main/java/edu/uiowa/lucene/conceptSearch/conceptParse.cup -text
 src/main/java/edu/uiowa/lucene/conceptSearch/conceptParse.lex -text
 src/main/java/edu/uiowa/lucene/conceptSearch/conceptParseFlex.java -text
+src/main/java/edu/uiowa/lucene/util/FacetIndexer.java -text
+src/main/java/edu/uiowa/lucene/util/SimpleFacetsExample.java -text
 src/main/resources/META-INF/taglib.tld -text svneol=unset#text/xml
 src/main/resources/META-INF/taglib.tld.off -text
 src/test/java/edu/uiowa/lucene/README.txt svneol=native#text/plain

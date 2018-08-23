@@ -32,6 +32,7 @@ public class LuceneHit extends BodyTagSupport {
 	    if (label.equals("score"))
 		pageContext.getOut().print(theIterator.theHit.score);
 	    else {
+		log.info("lucene hit: " + theIterator.theDocument.get(label));
 		pageContext.getOut().print(theIterator.theDocument.get(label));
 		// System.out.println("target: " +
 		// theSearch.theDocument.get(label) + "\tscore: " +
