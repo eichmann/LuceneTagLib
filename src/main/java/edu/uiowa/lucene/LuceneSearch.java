@@ -14,8 +14,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.facet.params.FacetSearchParams;
+import org.apache.lucene.facet.search.DrillDownQuery;
 import org.apache.lucene.facet.search.FacetResult;
 import org.apache.lucene.facet.search.FacetsCollector;
+import org.apache.lucene.facet.taxonomy.CategoryPath;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -132,6 +134,17 @@ public class LuceneSearch extends BodyTagSupport {
 	    if (theTaxonomy == null) {
 		theHits = theSearcher.search(theQuery, 1000);
 	    } else {
+		if (theTaxonomy.drillDownFacets != null) {
+		    FacetSearchParams fsp = new FacetSearchParams(theTaxonomy.facetRequests);
+		    DrillDownQuery q2 = new DrillDownQuery(fsp.indexingParams,theQuery);
+		    for (String drillDownFacet : theTaxonomy.drillDownFacets) {
+			log.info("\tadding category path: " + drillDownFacet);
+			q2.add(new CategoryPath(drillDownFacet, '/'));
+		    }
+//		    q2.add(new CategoryPath("Source/CTSAsearch", '/'));
+//		    q2.add(new CategoryPath("Entity/Person/Professor", '/'));
+		    theQuery = q2;
+		}
 		log.info("facet query: " + theQuery);
 		theSearcher.search(theQuery, facetCollector);
 		facetResults = facetCollector.getFacetResults();

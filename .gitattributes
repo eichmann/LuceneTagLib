@@ -12,6 +12,7 @@ src/main/java/edu/uiowa/lucene/LuceneCount.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneCountFacetRequest.java -text
 src/main/java/edu/uiowa/lucene/LuceneDelete.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneDocument.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneDrillDownFacet.java -text
 src/main/java/edu/uiowa/lucene/LuceneFacet.java -text
 src/main/java/edu/uiowa/lucene/LuceneFacetIterator.java -text
 src/main/java/edu/uiowa/lucene/LuceneField.java svneol=native#text/x-java-source

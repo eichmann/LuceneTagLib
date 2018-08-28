@@ -11,7 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.log4j.Level;
+import javax.servlet.jsp.JspTagException;
+
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.Syntax;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -32,8 +39,20 @@ public class FacetIndexer {
     static private Directory taxoDir = null;
     static Connection conn = null;
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
-        PropertyConfigurator.configure("log4j.info");
+	static protected String prefix = 
+		"PREFIX ld4l: <http://bib.ld4l.org/ontology/>"
+			+ "PREFIX ld4lcornell: <http://draft.ld4l.org/cornell/>"
+			+ "PREFIX madsrdf: <http://www.loc.gov/mads/rdf/v1#>"
+			+ "PREFIX oa: <http://www.w3.org/ns/oa#>"
+			+ "PREFIX owl: <http://www.w3.org/2002/07/owl#>"
+			+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+			+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
+			+ "PREFIX void: <http://rdfs.org/ns/void#>"
+			+ "PREFIX worldcat: <http://www.worldcat.org/oclc/>"
+			+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>";
+
+    public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException, JspTagException {
+        PropertyConfigurator.configure("/Users/eichmann/Documents/Components/log4j.info");
 	conn = getConnection();
 	indexDir = FSDirectory.open(new File("/usr/local/CD2H/lucene/facet_test"));
 	taxoDir = FSDirectory.open(new File("/usr/local/CD2H/lucene/facet_test_tax"));
@@ -47,16 +66,253 @@ public class FacetIndexer {
 	// Reused across documents, to add the necessary facet fields
 	FacetFields facetFields = new FacetFields(taxoWriter);
 
-	indexVIVO(indexWriter, facetFields);
+	indexGitHubUsers(indexWriter, facetFields);
+	indexGitHubRepositories(indexWriter, facetFields);
+
+	indexNLightenUsers(indexWriter, facetFields);
+	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Movie", "Movie");
+	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Course", "Course");
+	
+	indexCTSAsearch(indexWriter, facetFields);
+	indexClinicalTrialOfficialContact(indexWriter, facetFields);
 
 	taxoWriter.close();
 	indexWriter.close();
     }
     
     @SuppressWarnings("deprecation")
-    static void indexVIVO(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
-	logger.info("indexing VIVO...");
-	PreparedStatement stmt = conn.prepareStatement("select distinct person.id,site,uri,first_name,last_name,title,ctsa from vivo_aggregated.person,vivo.site where person.id=site.id and person.id!=44 order by site,last_name,first_name");
+    static void indexNLightenUsers(IndexWriter indexWriter, FacetFields facetFields) throws JspTagException, IOException {
+	int count = 0;
+	logger.info("indexing N-Lighten users...");
+
+	org.apache.jena.query.ResultSet rs = getResultSet(prefix
+		+ " SELECT ?s ?lab where { "
+		+ "  ?s rdf:type <http://xmlns.com/foaf/0.1/Person> . "
+		+ "  OPTIONAL { ?s rdfs:label ?labelUS  FILTER (lang(?labelUS) = \"en-US\") } "
+		+ "  OPTIONAL { ?s rdfs:label ?labelENG FILTER (langMatches(?labelENG,\"en\")) } "
+		+ "  OPTIONAL { ?s rdfs:label ?label    FILTER (lang(?label) = \"\") } "
+		+ "  OPTIONAL { ?s rdfs:label ?labelANY FILTER (lang(?labelANY) != \"\") } "
+		+ "  BIND(COALESCE(?labelUS, ?labelENG, ?label, ?labelANY ) as ?lab) " + " } ");
+	while (rs.hasNext()) {
+	    QuerySolution sol = rs.nextSolution();
+	    String subjectURI = sol.get("?s").toString();
+	    String label = sol.get("?lab") == null ? null : sol.get("?lab").asLiteral().getString();
+	    
+	    logger.info("uri: " + subjectURI + "\t" + label);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "N-Lighten", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/N-Lighten", '/'));
+
+	    theDocument.add(new Field("uri", subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    if (label != null ) {
+		theDocument.add(new Field("last_name", label, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", label, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    paths.add(new CategoryPath("Entity/Person/unknown", '/'));
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	logger.info("\tusers indexed: " + count);
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexNLightenResource(IndexWriter indexWriter, FacetFields facetFields, String clss, String facet) throws JspTagException, IOException {
+	int count = 0;
+	logger.info("indexing N-Lighten users...");
+
+	org.apache.jena.query.ResultSet rs = getResultSet(prefix
+		+ " SELECT ?s ?lab ?desc where { "
+		+ "  ?s rdf:type <"+ clss + "> . "
+		+ "  OPTIONAL { ?s <http://schema.org/description> ?desc } "
+		+ "  OPTIONAL { ?s rdfs:label ?labelUS  FILTER (lang(?labelUS) = \"en-US\") } "
+		+ "  OPTIONAL { ?s rdfs:label ?labelENG FILTER (langMatches(?labelENG,\"en\")) } "
+		+ "  OPTIONAL { ?s rdfs:label ?label    FILTER (lang(?label) = \"\") } "
+		+ "  OPTIONAL { ?s rdfs:label ?labelANY FILTER (lang(?labelANY) != \"\") } "
+		+ "  BIND(COALESCE(?labelUS, ?labelENG, ?label, ?labelANY ) as ?lab) " + " } ");
+	while (rs.hasNext()) {
+	    QuerySolution sol = rs.nextSolution();
+	    String subjectURI = sol.get("?s").toString();
+	    String label = sol.get("?lab") == null ? null : sol.get("?lab").asLiteral().getString();
+	    String description = sol.get("?desc") == null ? null : sol.get("?desc").asLiteral().getString();
+	    
+	    logger.info("uri: " + subjectURI + "\t" + label);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "N-Lighten", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/N-Lighten", '/'));
+
+	    theDocument.add(new Field("uri", subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    if (label != null ) {
+		theDocument.add(new Field("last_name", label, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", label, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    if (description != null ) {
+		theDocument.add(new Field("description", description, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    paths.add(new CategoryPath("Entity/Educational Resource/" + facet, '/'));
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	logger.info("\t" + facet + "s indexed: " + count);
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexGitHubUsers(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
+	int count = 0;
+	logger.info("indexing GitHub users...");
+	PreparedStatement stmt = conn.prepareStatement("select login,name,bio from github.user");
+	ResultSet rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String login = rs.getString(1);
+	    String name = rs.getString(2);
+	    String bio = rs.getString(3);
+	    
+	    logger.info("login: " + login + "\t" + name);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "GitHub", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/GitHub", '/'));
+
+	    theDocument.add(new Field("uri", "http://github.com/"+login, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    if (name != null ) {
+		theDocument.add(new Field("last_name", name, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("last_name", login, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", login, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    if (bio != null) {
+		theDocument.add(new Field("content", bio, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    paths.add(new CategoryPath("Entity/Person/unknown", '/'));
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	stmt.close();
+	logger.info("\tusers indexed: " + count);
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexGitHubRepositories(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
+	int count = 0;
+	logger.info("indexing GitHub repositories...");
+	PreparedStatement stmt = conn.prepareStatement("select id,name,full_name,description,language from github.repository,github.search_repository where id=rid and relevant");
+	ResultSet rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String name = rs.getString(2);
+	    String fullName = rs.getString(3);
+	    String description = rs.getString(4);
+	    String language = rs.getString(5);
+	    
+	    logger.info("name: " + fullName);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "GitHub", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/GitHub", '/'));
+	    if (language == null)
+		paths.add(new CategoryPath("Entity/Repository/unknown", '/'));
+	    else {
+		theDocument.add(new Field("content", language, Field.Store.NO, Field.Index.ANALYZED));
+		paths.add(new CategoryPath("Entity/Repository/"+language, '/'));
+	    }
+
+	    theDocument.add(new Field("uri", "http://github.com/"+fullName, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    if (name != null ) {
+		theDocument.add(new Field("last_name", name, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("last_name", name, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", fullName, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    if (description != null) {
+		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	stmt.close();
+	logger.info("\trepositories indexed: " + count);
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexClinicalTrialOfficialContact(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
+	int count = 0;
+	logger.info("indexing ClinicalTrials.gov official contacts...");
+	PreparedStatement stmt = conn.prepareStatement("select last_name,role,affiliation,count(*) from clinical_trials.overall_official group by 1,2,3 order by 4 desc");
+	ResultSet rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String name = rs.getString(1);
+	    String title = rs.getString(2);
+	    String site = rs.getString(3);
+	    
+	    logger.info("login: " + name + "\t" + site);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "ClinicalTrials.gov", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/ClinicalTrials.gov", '/'));
+
+	    theDocument.add(new Field("uri", "http://ClinicalTrials.gov/"+name, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    if (name != null ) {
+		theDocument.add(new Field("last_name", name, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    if (title == null)
+		paths.add(new CategoryPath("Entity/Person/unknown", '/'));
+	    else {
+		theDocument.add(new Field("title", title, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+		try {
+		    paths.add(new CategoryPath("Entity/Person/"+title, '/'));
+		} catch (Exception e) {
+		    logger.error("error adding title facet", e);
+		}
+	    }
+	    
+	    if (site != null) {
+		theDocument.add(new Field("site", site, Field.Store.YES, Field.Index.NOT_ANALYZED));
+		theDocument.add(new Field("content", site, Field.Store.NO, Field.Index.ANALYZED));
+		try {
+		    paths.add(new CategoryPath("Site/"+site, '/'));
+		} catch (Exception e) {
+		    logger.error("error adding site facet", e);
+		}
+	    } else {
+		paths.add(new CategoryPath("Site/unknown", '/'));		
+	    }
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	stmt.close();
+	logger.info("\tusers indexed: " + count);
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexCTSAsearch(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+	int count = 0;
+	logger.info("indexing CTSAsearch...");
+	PreparedStatement stmt = conn.prepareStatement("select distinct person_real.id,site,uri,first_name,last_name,title,ctsa,platform from vivo_aggregated.person_real,vivo.site where person_real.id=site.id and uri!~'pubid' order by site,last_name,first_name");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String site = rs.getString(2);
@@ -65,11 +321,19 @@ public class FacetIndexer {
 	    String lastName = rs.getString(5);
 	    String title = rs.getString(6);
 	    boolean ctsa = rs.getBoolean(7);
+	    String platform = rs.getString(8);
 	    
 	    logger.info("site: " + site + "\t" + lastName + ", " + firstName);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "CTSAsearch", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    if (platform != null) {
+		paths.add(new CategoryPath("Source/CTSAsearch/" + platform, '/'));
+	    } else {
+		paths.add(new CategoryPath("Source/CTSAsearch/unknown", '/'));
+	    }
 	    
 	    theDocument.add(new Field("uri", uri, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (firstName != null ) {
@@ -79,12 +343,12 @@ public class FacetIndexer {
 	    theDocument.add(new Field("last_name", lastName, Field.Store.YES, Field.Index.ANALYZED));
 	    theDocument.add(new Field("content", lastName, Field.Store.NO, Field.Index.ANALYZED));
 	    if (title == null)
-		paths.add(new CategoryPath("Person/VIVO", '/'));
+		paths.add(new CategoryPath("Entity/Person/unknown", '/'));
 	    else {
 		theDocument.add(new Field("title", title, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
 		try {
-		    paths.add(new CategoryPath("Person/VIVO/"+title, '/'));
+		    paths.add(new CategoryPath("Entity/Person/"+title, '/'));
 		} catch (Exception e) {
 		    logger.error("error adding title facet", e);
 		}
@@ -98,21 +362,30 @@ public class FacetIndexer {
 
 	    facetFields.addFields(theDocument, paths);
 	    indexWriter.addDocument(theDocument);
+	    count++;
 	}
 	stmt.close();
-    }
+	logger.info("\tusers indexed: " + count);
+   }
 
     public static Connection getConnection() throws SQLException, ClassNotFoundException {
 	Class.forName("org.postgresql.Driver");
 	Properties props = new Properties();
-	props.setProperty("user", "eichmann");
-	props.setProperty("password", "translational");
+	props.setProperty("user", "");
+	props.setProperty("password", "");
 //	if (use_ssl.equals("true")) {
 //	    props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
 //	    props.setProperty("ssl", "true");
 //	}
-	Connection conn = DriverManager.getConnection("jdbc:postgresql://deep-thought.slis.uiowa.edu/loki", props);
+	Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost/loki", props);
 	conn.setAutoCommit(false);
 	return conn;
     }
+
+    public static org.apache.jena.query.ResultSet getResultSet(String queryString) throws JspTagException {
+	Query theClassQuery = QueryFactory.create(queryString, Syntax.syntaxARQ);
+	QueryExecution theClassExecution = QueryExecutionFactory.sparqlService("https://alaska.dev.eagle-i.net/sparqler/sparql", theClassQuery);
+	return theClassExecution.execSelect();
+    }
+
 }

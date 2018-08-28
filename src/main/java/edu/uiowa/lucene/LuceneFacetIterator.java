@@ -34,14 +34,14 @@ public class LuceneFacetIterator extends BodyTagSupport {
     public int doStartTag() throws JspException {
 	theSearch = (LuceneSearch) findAncestorWithClass(this, LuceneSearch.class);
 	parentFacet = (LuceneFacet) findAncestorWithClass(this, LuceneFacet.class);
-	log.info("doStartTag LuceneFacetIterator: " + theSearch + "\t" + parentFacet);
+	log.trace("doStartTag LuceneFacetIterator: " + theSearch + "\t" + parentFacet);
 	if (theSearch == null) {
 	    throw new JspTagException("Lucene facet iterator tag not nesting in Search instance");
 	}
 
 	if (parentFacet == null) {
 	    facetResults = theSearch.getFacetResults();
-	    log.info("FacetResult list: " + facetResults);
+	    log.trace("FacetResult list: " + facetResults);
 	    hitFence = 0;
 	    if (hitFence < facetResults.size()) {
 		theResult = facetResults.get(hitFence++);
@@ -50,11 +50,14 @@ public class LuceneFacetIterator extends BodyTagSupport {
 	    }
 	} else {
 	    try {
-		facetResultNodes = parentFacet.theResult.getFacetResultNode().subResults;
+		if (parentFacet.theResult != null)
+		    facetResultNodes = parentFacet.theResult.getFacetResultNode().subResults;
+		else
+		    facetResultNodes = parentFacet.theResultNode.subResults;
 	    } catch (Exception e) {
 		facetResultNodes = new ArrayList<FacetResultNode>();
 	    }
-	    log.info("FacetResultNode list: " + facetResultNodes);
+	    log.trace("FacetResultNode list: " + facetResultNodes);
 	    hitFence = 0;
 	    if (hitFence < facetResultNodes.size()) {
 		theResultNode = facetResultNodes.get(hitFence++);

@@ -32,11 +32,8 @@ public class LuceneHit extends BodyTagSupport {
 	    if (label.equals("score"))
 		pageContext.getOut().print(theIterator.theHit.score);
 	    else {
-		log.info("lucene hit: " + theIterator.theDocument.get(label));
+		log.trace("lucene hit: " + theIterator.theDocument.get(label));
 		pageContext.getOut().print(theIterator.theDocument.get(label));
-		// System.out.println("target: " +
-		// theSearch.theDocument.get(label) + "\tscore: " +
-		// theSearch.theHit.getScore());
 	    }
 	} catch (CorruptIndexException e) {
 	    log.error("Corruption Exception", e);

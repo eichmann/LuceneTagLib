@@ -36,13 +36,15 @@ public class LuceneFacet extends BodyTagSupport {
 
 	theResult = theIterator.theResult;
 	theResultNode = theIterator.theResultNode;
-	log.info("facet tag: " + theResult + "\t" + theResultNode);
+	log.debug("facet tag: " + theResult + "\t" + theResultNode);
 
 	if (theResult != null) {
-	    log.info("facet subtags: " + theResult.getFacetResultNode().subResults);
+	    log.trace("facet subtags: " + theResult.getFacetResultNode().subResults);
 
 	    try {
-		if (label.equals("count"))
+		if (label.equals("none")) {
+		    // do nothing except provide context
+		} else if (label.equals("count"))
 		    pageContext.getOut().print(theResult.getNumValidDescendants());
 		else {
 		    pageContext.getOut().print(theResult.getFacetResultNode().label);
@@ -53,10 +55,12 @@ public class LuceneFacet extends BodyTagSupport {
 		log.error("IO Exception", e);
 	    }
 	} else {
-	    log.info("facet subtags: " + theResultNode.subResults);
+	    log.trace("facet subtags: " + theResultNode.subResults);
 
 	    try {
-		if (label.equals("count"))
+		if (label.equals("none")) {
+		    // do nothing except provide context
+		} else if (label.equals("count"))
 		    pageContext.getOut().print((int)theResultNode.value);
 		else {
 		    pageContext.getOut().print(theResultNode.label.components[theResultNode.label.components.length-1]);

@@ -26,6 +26,7 @@ public class LuceneTaxonomy extends BodyTagSupport {
     TaxonomyReader taxoReader = null;
     FacetSearchParams fsp = null;
     List<FacetRequest> facetRequests = new ArrayList<FacetRequest>();
+    List<String> drillDownFacets = new ArrayList<String>();
     
     public int doStartTag() throws JspException {
 	log.info("taxonomy: " + taxonomyPath);
@@ -48,6 +49,7 @@ public class LuceneTaxonomy extends BodyTagSupport {
 	taxoReader = null;
 	fsp = null;
 	facetRequests = new ArrayList<FacetRequest>();
+	drillDownFacets = new ArrayList<String>();
     }
 
     public String getTaxonomyPath() {
@@ -60,6 +62,10 @@ public class LuceneTaxonomy extends BodyTagSupport {
     
     public void addFacetSearchParam(FacetRequest facetRequest) {
 	facetRequests.add(facetRequest);
+    }
+    
+    public void addDrillDownFacet(String facetRequest) {
+	drillDownFacets.add(facetRequest);
     }
 
 }

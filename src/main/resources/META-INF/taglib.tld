@@ -98,6 +98,18 @@
     </tag>
     
     <tag>
+        <name>drillDownFacet</name>
+        <tag-class>edu.uiowa.lucene.LuceneDrillDownFacet</tag-class>
+        <body-content>JSP</body-content>
+
+        <attribute>
+            <name>categoryPath</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+    
+    <tag>
         <name>facetIterator</name>
         <tag-class>edu.uiowa.lucene.LuceneFacetIterator</tag-class>
         <body-content>JSP</body-content>
