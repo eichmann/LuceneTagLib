@@ -75,6 +75,8 @@ public class FacetIndexer {
 	
 	indexCTSAsearch(indexWriter, facetFields);
 	indexClinicalTrialOfficialContact(indexWriter, facetFields);
+	
+	indexNIHFOA(indexWriter, facetFields);
 
 	taxoWriter.close();
 	indexWriter.close();
@@ -108,7 +110,7 @@ public class FacetIndexer {
 
 	    theDocument.add(new Field("uri", subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (label != null ) {
-		theDocument.add(new Field("last_name", label, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("label", label, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", label, Field.Store.NO, Field.Index.ANALYZED));
 	    }
 	    paths.add(new CategoryPath("Entity/Person/unknown", '/'));
@@ -150,7 +152,7 @@ public class FacetIndexer {
 
 	    theDocument.add(new Field("uri", subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (label != null ) {
-		theDocument.add(new Field("last_name", label, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("label", label, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", label, Field.Store.NO, Field.Index.ANALYZED));
 	    }
 	    if (description != null ) {
@@ -187,10 +189,10 @@ public class FacetIndexer {
 
 	    theDocument.add(new Field("uri", "http://github.com/"+login, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (name != null ) {
-		theDocument.add(new Field("last_name", name, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("label", name, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
 	    } else {
-		theDocument.add(new Field("last_name", login, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("label", login, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", login, Field.Store.NO, Field.Index.ANALYZED));
 	    }
 	    if (bio != null) {
@@ -234,10 +236,10 @@ public class FacetIndexer {
 
 	    theDocument.add(new Field("uri", "http://github.com/"+fullName, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (name != null ) {
-		theDocument.add(new Field("last_name", name, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("label", name, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
 	    } else {
-		theDocument.add(new Field("last_name", name, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("label", name, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", fullName, Field.Store.NO, Field.Index.ANALYZED));
 	    }
 	    if (description != null) {
@@ -273,7 +275,7 @@ public class FacetIndexer {
 
 	    theDocument.add(new Field("uri", "http://ClinicalTrials.gov/"+name, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (name != null ) {
-		theDocument.add(new Field("last_name", name, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("label", name+(title == null ? "" : (", "+title)), Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
 	    }
 	    if (title == null)
@@ -337,10 +339,11 @@ public class FacetIndexer {
 	    
 	    theDocument.add(new Field("uri", uri, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (firstName != null ) {
+		theDocument.add(new Field("label", lastName+", "+firstName+(title == null ? "" : (", "+title)), Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("first_name", firstName, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", firstName, Field.Store.NO, Field.Index.ANALYZED));
-	    }
-	    theDocument.add(new Field("last_name", lastName, Field.Store.YES, Field.Index.ANALYZED));
+	    } else
+		theDocument.add(new Field("label", lastName+(title == null ? "" : (", "+title)), Field.Store.YES, Field.Index.ANALYZED));
 	    theDocument.add(new Field("content", lastName, Field.Store.NO, Field.Index.ANALYZED));
 	    if (title == null)
 		paths.add(new CategoryPath("Entity/Person/unknown", '/'));
@@ -366,7 +369,66 @@ public class FacetIndexer {
 	}
 	stmt.close();
 	logger.info("\tusers indexed: " + count);
-   }
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexNIHFOA(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+	int count = 0;
+	logger.info("indexing NIH FOAs...");
+	PreparedStatement stmt = conn.prepareStatement("select id,title,purpose,primary_ic,doc_num,guide_link from NIH_FOA.guide_doc order by id");
+	ResultSet rs = stmt.executeQuery();
+
+	while (rs.next()) {
+	    count++;
+	    int ID = rs.getInt(1);
+	    String title = rs.getString(2);
+	    String purpose = rs.getString(3);
+	    String primaryIC = rs.getString(4);
+	    String docNum = rs.getString(5);
+	    String uri = rs.getString(6);
+
+	    logger.info("FOA: " + primaryIC + ", " + docNum + "\t" + title);
+
+	    PreparedStatement contentStmt = conn.prepareStatement("select html from NIH_FOA.content where id = ?");
+	    contentStmt.setInt(1, ID);
+	    ResultSet crs = contentStmt.executeQuery();
+	    while (crs.next()) {
+		String content = crs.getString(1);
+		Document theDocument = new Document();
+		List<CategoryPath> paths = new ArrayList<CategoryPath>();
+		
+		theDocument.add(new Field("source", "NIH FOA", Field.Store.YES, Field.Index.NOT_ANALYZED));
+		theDocument.add(new Field("uri", uri, Field.Store.YES, Field.Index.NOT_ANALYZED));
+		theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+		theDocument.add(new Field("label", docNum+" - "+title, Field.Store.YES, Field.Index.ANALYZED));
+
+		theDocument.add(new Field("purpose", title, Field.Store.NO, Field.Index.ANALYZED));
+		theDocument.add(new Field("purpose", purpose, Field.Store.NO, Field.Index.ANALYZED));
+
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", purpose, Field.Store.NO, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", content, Field.Store.NO, Field.Index.ANALYZED));
+		
+		paths.add(new CategoryPath("Source/NIH FOA", '/'));
+		paths.add(new CategoryPath("Site/NIH/" + primaryIC, '/'));
+		
+		PreparedStatement activityStmt = conn.prepareStatement("select code from nih_foa.activity_code where id = ?");
+		activityStmt.setInt(1, ID);
+		ResultSet activityRS = activityStmt.executeQuery();
+		while (activityRS.next()) {
+		    paths.add(new CategoryPath("Entity/Funding Opportunity/" + activityRS.getString(1), '/'));
+		}
+		activityStmt.close();
+		
+		facetFields.addFields(theDocument, paths);
+		indexWriter.addDocument(theDocument);
+	    }
+	    contentStmt.close();
+	}
+	stmt.close();
+	logger.info("\tFOAs indexed: " + count);
+    }
 
     public static Connection getConnection() throws SQLException, ClassNotFoundException {
 	Class.forName("org.postgresql.Driver");
