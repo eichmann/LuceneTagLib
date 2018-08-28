@@ -106,8 +106,8 @@ public class LuceneSearch extends BodyTagSupport {
 	    if (theTaxonomy != null) {
 		theTaxonomy.fsp = new FacetSearchParams(theTaxonomy.facetRequests);
 		facetCollector = FacetsCollector.create(theTaxonomy.fsp, theSearcher.getIndexReader(), theTaxonomy.taxoReader);
-		log.info("taxonomy: " + theTaxonomy);
-		log.info("facet collector: " + facetCollector);
+		log.trace("taxonomy: " + theTaxonomy);
+		log.trace("facet collector: " + facetCollector);
 	    }
 
 	    if ("concept".equals(queryParserName)) {

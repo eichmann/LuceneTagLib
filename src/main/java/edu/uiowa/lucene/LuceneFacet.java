@@ -36,7 +36,7 @@ public class LuceneFacet extends BodyTagSupport {
 
 	theResult = theIterator.theResult;
 	theResultNode = theIterator.theResultNode;
-	log.debug("facet tag: " + theResult + "\t" + theResultNode);
+	log.trace("facet tag: " + theResult + "\t" + theResultNode);
 
 	if (theResult != null) {
 	    log.trace("facet subtags: " + theResult.getFacetResultNode().subResults);
