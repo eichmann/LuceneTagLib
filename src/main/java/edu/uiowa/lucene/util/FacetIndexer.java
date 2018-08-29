@@ -427,6 +427,7 @@ public class FacetIndexer {
 	    
 	    theDocument.add(new Field("source", "ClinicalTrials.gov", Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    paths.add(new CategoryPath("Source/ClinicalTrials.gov", '/'));
+	    paths.add(new CategoryPath("Entity/Clinical Trial", '/'));
 
 	    theDocument.add(new Field("uri", "https://clinicaltrials.gov/ct2/show/"+nctID, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    theDocument.add(new Field("content", nctID, Field.Store.NO, Field.Index.ANALYZED));
