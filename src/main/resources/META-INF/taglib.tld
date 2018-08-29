@@ -110,6 +110,30 @@
     </tag>
     
     <tag>
+        <name>drillDownProcessor</name>
+        <tag-class>edu.uiowa.lucene.LuceneDrillDownProcessor</tag-class>
+        <body-content>JSP</body-content>
+
+        <attribute>
+            <name>categoryPaths</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+
+        <attribute>
+            <name>drillUpCategory</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+
+        <attribute>
+            <name>drillOutCategory</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+    
+    <tag>
         <name>facetIterator</name>
         <tag-class>edu.uiowa.lucene.LuceneFacetIterator</tag-class>
         <body-content>JSP</body-content>

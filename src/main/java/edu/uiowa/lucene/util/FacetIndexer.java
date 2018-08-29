@@ -67,14 +67,18 @@ public class FacetIndexer {
 	FacetFields facetFields = new FacetFields(taxoWriter);
 
 	indexGitHubUsers(indexWriter, facetFields);
+	indexGitHubOrganizations(indexWriter, facetFields);
 	indexGitHubRepositories(indexWriter, facetFields);
 
 	indexNLightenUsers(indexWriter, facetFields);
+	indexNLightenOrganizations(indexWriter, facetFields);
 	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Movie", "Movie");
 	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Course", "Course");
 	
 	indexCTSAsearch(indexWriter, facetFields);
+
 	indexClinicalTrialOfficialContact(indexWriter, facetFields);
+	indexClinicalTrials(indexWriter, facetFields);
 	
 	indexNIHFOA(indexWriter, facetFields);
 
@@ -120,6 +124,46 @@ public class FacetIndexer {
 	    count++;
 	}
 	logger.info("\tusers indexed: " + count);
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexNLightenOrganizations(IndexWriter indexWriter, FacetFields facetFields) throws JspTagException, IOException {
+	int count = 0;
+	logger.info("indexing N-Lighten organizations...");
+
+	org.apache.jena.query.ResultSet rs = getResultSet(prefix
+		+ " SELECT ?s ?lab where { "
+		+ "  ?s rdf:type <http://xmlns.com/foaf/0.1/Organization> . "
+		+ "  OPTIONAL { ?s rdfs:label ?labelUS  FILTER (lang(?labelUS) = \"en-US\") } "
+		+ "  OPTIONAL { ?s rdfs:label ?labelENG FILTER (langMatches(?labelENG,\"en\")) } "
+		+ "  OPTIONAL { ?s rdfs:label ?label    FILTER (lang(?label) = \"\") } "
+		+ "  OPTIONAL { ?s rdfs:label ?labelANY FILTER (lang(?labelANY) != \"\") } "
+		+ "  BIND(COALESCE(?labelUS, ?labelENG, ?label, ?labelANY ) as ?lab) " + " } ");
+	while (rs.hasNext()) {
+	    QuerySolution sol = rs.nextSolution();
+	    String subjectURI = sol.get("?s").toString();
+	    String label = sol.get("?lab") == null ? null : sol.get("?lab").asLiteral().getString();
+	    
+	    logger.info("uri: " + subjectURI + "\t" + label);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "N-Lighten", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/N-Lighten", '/'));
+
+	    theDocument.add(new Field("uri", subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    if (label != null ) {
+		theDocument.add(new Field("label", label, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", label, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    paths.add(new CategoryPath("Entity/Organization/unknown", '/'));
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	logger.info("\torganizations indexed: " + count);
     }
     
     @SuppressWarnings("deprecation")
@@ -172,7 +216,7 @@ public class FacetIndexer {
     static void indexGitHubUsers(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing GitHub users...");
-	PreparedStatement stmt = conn.prepareStatement("select login,name,bio from github.user");
+	PreparedStatement stmt = conn.prepareStatement("select login,name,bio from github.user,github.search_user where uid=id and relevant");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String login = rs.getString(1);
@@ -209,12 +253,53 @@ public class FacetIndexer {
     }
     
     @SuppressWarnings("deprecation")
+    static void indexGitHubOrganizations(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
+	int count = 0;
+	logger.info("indexing GitHub organizations...");
+	PreparedStatement stmt = conn.prepareStatement("select login,name,description from github.organization,github.search_organization where orgid=id and relevant");
+	ResultSet rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String login = rs.getString(1);
+	    String name = rs.getString(2);
+	    String bio = rs.getString(3);
+	    
+	    logger.info("login: " + login + "\t" + name);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "GitHub", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/GitHub", '/'));
+
+	    theDocument.add(new Field("uri", "http://github.com/"+login, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    if (name != null ) {
+		theDocument.add(new Field("label", name, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("label", login, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", login, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    if (bio != null) {
+		theDocument.add(new Field("content", bio, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    paths.add(new CategoryPath("Entity/Organization/unknown", '/'));
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	stmt.close();
+	logger.info("\torganizations indexed: " + count);
+    }
+    
+    @SuppressWarnings("deprecation")
     static void indexGitHubRepositories(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing GitHub repositories...");
 	PreparedStatement stmt = conn.prepareStatement("select id,name,full_name,description,language from github.repository,github.search_repository where id=rid and relevant");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
+	    int ID = rs.getInt(1);
 	    String name = rs.getString(2);
 	    String fullName = rs.getString(3);
 	    String description = rs.getString(4);
@@ -245,6 +330,16 @@ public class FacetIndexer {
 	    if (description != null) {
 		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
 	    }
+	    
+	    PreparedStatement readStmt = conn.prepareStatement("select readme from github.readme where id=?");
+	    readStmt.setInt(1, ID);
+	    ResultSet readRS = readStmt.executeQuery();
+	    while (readRS.next()) {
+		String readme = readRS.getString(1);
+		if (readme != null)
+		    theDocument.add(new Field("content", readme, Field.Store.NO, Field.Index.ANALYZED));		
+	    }
+	    readStmt.close();
 
 	    facetFields.addFields(theDocument, paths);
 	    indexWriter.addDocument(theDocument);
@@ -308,6 +403,83 @@ public class FacetIndexer {
 	}
 	stmt.close();
 	logger.info("\tusers indexed: " + count);
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexClinicalTrials(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
+	int count = 0;
+	logger.info("indexing ClinicalTrials.gov trials...");
+	PreparedStatement stmt = conn.prepareStatement("select nct_id,brief_title,official_title,overall_status,phase,study_type,condition from clinical_trials.clinical_study");
+	ResultSet rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String nctID = rs.getString(1);
+	    String briefTitle = rs.getString(2);
+	    String title = rs.getString(3);
+	    String status = rs.getString(4);
+	    String phase = rs.getString(5);
+	    String type = rs.getString(6);
+	    String condition = rs.getString(7);
+	    
+	    logger.info("trial: " + nctID + "\t" + briefTitle);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "ClinicalTrials.gov", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/ClinicalTrials.gov", '/'));
+
+	    theDocument.add(new Field("uri", "https://clinicaltrials.gov/ct2/show/"+nctID, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("content", nctID, Field.Store.NO, Field.Index.ANALYZED));
+	    if (briefTitle != null ) {
+		theDocument.add(new Field("label", briefTitle, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", briefTitle, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    if (title != null)  {
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    
+	    if (status != null) {
+		theDocument.add(new Field("content", status, Field.Store.NO, Field.Index.ANALYZED));
+		try {
+		    paths.add(new CategoryPath("Status/"+status, '/'));
+		} catch (Exception e) {
+		    logger.error("error adding status facet", e);
+		}
+	    }
+
+	    if (phase != null) {
+		theDocument.add(new Field("content", phase, Field.Store.NO, Field.Index.ANALYZED));
+		try {
+		    paths.add(new CategoryPath("Phase/"+phase, '/'));
+		} catch (Exception e) {
+		    logger.error("error adding phase facet", e);
+		}
+	    }
+
+	    if (type != null) {
+		theDocument.add(new Field("content", type, Field.Store.NO, Field.Index.ANALYZED));
+		try {
+		    paths.add(new CategoryPath("Type/"+type, '/'));
+		} catch (Exception e) {
+		    logger.error("error adding type facet", e);
+		}
+	    }
+
+	    if (condition != null) {
+		theDocument.add(new Field("content", condition, Field.Store.NO, Field.Index.ANALYZED));
+		try {
+		    paths.add(new CategoryPath("Condition/"+condition, '/'));
+		} catch (Exception e) {
+		    logger.error("error adding condition facet", e);
+		}
+	    }
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	stmt.close();
+	logger.info("\ttrials indexed: " + count);
     }
     
     @SuppressWarnings("deprecation")
@@ -433,8 +605,8 @@ public class FacetIndexer {
     public static Connection getConnection() throws SQLException, ClassNotFoundException {
 	Class.forName("org.postgresql.Driver");
 	Properties props = new Properties();
-	props.setProperty("user", "");
-	props.setProperty("password", "");
+	props.setProperty("user", "eichmann");
+	props.setProperty("password", "translational");
 //	if (use_ssl.equals("true")) {
 //	    props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
 //	    props.setProperty("ssl", "true");
