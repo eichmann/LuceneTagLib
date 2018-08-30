@@ -82,6 +82,8 @@ public class FacetIndexer {
 	
 	indexNIHFOA(indexWriter, facetFields);
 
+	indexDataMed(indexWriter, facetFields);
+
 	taxoWriter.close();
 	indexWriter.close();
     }
@@ -601,6 +603,59 @@ public class FacetIndexer {
 	}
 	stmt.close();
 	logger.info("\tFOAs indexed: " + count);
+    }
+
+    @SuppressWarnings("deprecation")
+    static void indexDataMed(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+	int count = 0;
+	logger.info("indexing DataMed datasets...");
+	PreparedStatement stmt = conn.prepareStatement("select id,title,source,landing_page,description,creators,meshterms from datamed.dataset where landing_page is not null");
+	ResultSet rs = stmt.executeQuery();
+
+	while (rs.next()) {
+	    count++;
+	    String ID = rs.getString(1);
+	    String title = rs.getString(2);
+	    String source = rs.getString(3);
+	    String landingPage = rs.getString(4);
+	    String description = rs.getString(5);
+	    String creators = rs.getString(6);
+	    String meshterms = rs.getString(7);
+
+	    logger.info("dataset: " + ID + "\t" + title);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+
+	    theDocument.add(new Field("source", "DataMed", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", landingPage, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+	    if (title == null) {
+		theDocument.add(new Field("label", "DataMed "+ID, Field.Store.YES, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));		
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+		
+	    if (description != null)
+		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
+	    if (creators != null)
+		theDocument.add(new Field("content", creators, Field.Store.NO, Field.Index.ANALYZED));
+	    if (meshterms != null)
+		theDocument.add(new Field("content", meshterms, Field.Store.NO, Field.Index.ANALYZED));
+
+	    if (source != null && source.length() > 1)
+		paths.add(new CategoryPath("Source/DataMed/" + source, '/'));
+	    else
+		paths.add(new CategoryPath("Source/DataMed/unknown", '/'));
+	    paths.add(new CategoryPath("Entity/Data Set", '/'));
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	}
+	stmt.close();
+	logger.info("\t datasets indexed: " + count);
     }
 
     public static Connection getConnection() throws SQLException, ClassNotFoundException {
