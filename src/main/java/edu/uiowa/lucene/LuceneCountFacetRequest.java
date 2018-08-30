@@ -26,7 +26,7 @@ public class LuceneCountFacetRequest extends BodyTagSupport {
 	    throw new JspTagException("Lucene Concept Facet Request tag not nesting in Taxonomy instance");
 	}
 	
-	log.info("adding category path " + categoryPath + ", result count: " + resultCount);
+	log.trace("adding category path " + categoryPath + ", result count: " + resultCount);
 	CountFacetRequest theRequest = new CountFacetRequest(new CategoryPath(categoryPath), resultCount);
 	if (depth > 0)
 	    theRequest.setDepth(depth);

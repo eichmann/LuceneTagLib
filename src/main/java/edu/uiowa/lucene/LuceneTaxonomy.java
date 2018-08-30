@@ -29,7 +29,7 @@ public class LuceneTaxonomy extends BodyTagSupport {
     List<String> drillDownFacets = new ArrayList<String>();
     
     public int doStartTag() throws JspException {
-	log.info("taxonomy: " + taxonomyPath);
+	log.trace("taxonomy: " + taxonomyPath);
 	try {
 	    taxoReader = new DirectoryTaxonomyReader(FSDirectory.open(new File(taxonomyPath)));
 //	    fsp = new FacetSearchParams();

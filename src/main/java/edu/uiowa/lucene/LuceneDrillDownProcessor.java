@@ -24,7 +24,7 @@ public class LuceneDrillDownProcessor extends BodyTagSupport {
 
     public int doStartTag() throws JspTagException {
 	theTaxonomy = (LuceneTaxonomy) findAncestorWithClass(this, LuceneTaxonomy.class);
-	log.info("doStartTag - categoryPaths: " + categoryPaths + "\tdrillUpCategory: " + drillUpCategory + "\tdrillOutCategory: " + drillOutCategory);
+	log.trace("doStartTag - categoryPaths: " + categoryPaths + "\tdrillUpCategory: " + drillUpCategory + "\tdrillOutCategory: " + drillOutCategory);
 
 	if (theTaxonomy == null) {
 	    throw new JspTagException("Lucene drill down facet tag not nesting in Taxonomy instance");
