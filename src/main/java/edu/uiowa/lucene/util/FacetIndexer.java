@@ -74,6 +74,8 @@ public class FacetIndexer {
 	indexNLightenOrganizations(indexWriter, facetFields);
 	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Movie", "Movie");
 	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Course", "Course");
+	indexNLightenResource(indexWriter, facetFields, "http://vivoweb.org/ontology/core#CaseStudy", "Case Study");
+	indexNLightenResource(indexWriter, facetFields, "http://purl.org/n-lighten/NLN_0000041", "Resource Material");
 	
 	indexCTSAsearch(indexWriter, facetFields);
 
@@ -83,6 +85,8 @@ public class FacetIndexer {
 	indexNIHFOA(indexWriter, facetFields);
 
 	indexDataMed(indexWriter, facetFields);
+	
+	indexDataCite(indexWriter, facetFields);
 
 	taxoWriter.close();
 	indexWriter.close();
@@ -106,7 +110,7 @@ public class FacetIndexer {
 	    String subjectURI = sol.get("?s").toString();
 	    String label = sol.get("?lab") == null ? null : sol.get("?lab").asLiteral().getString();
 	    
-	    logger.info("uri: " + subjectURI + "\t" + label);
+	    logger.debug("uri: " + subjectURI + "\t" + label);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -114,7 +118,7 @@ public class FacetIndexer {
 	    theDocument.add(new Field("source", "N-Lighten", Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    paths.add(new CategoryPath("Source/N-Lighten", '/'));
 
-	    theDocument.add(new Field("uri", subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://alaska.dev.eagle-i.net/institution/#inst?uri="+subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (label != null ) {
 		theDocument.add(new Field("label", label, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", label, Field.Store.NO, Field.Index.ANALYZED));
@@ -146,7 +150,7 @@ public class FacetIndexer {
 	    String subjectURI = sol.get("?s").toString();
 	    String label = sol.get("?lab") == null ? null : sol.get("?lab").asLiteral().getString();
 	    
-	    logger.info("uri: " + subjectURI + "\t" + label);
+	    logger.debug("uri: " + subjectURI + "\t" + label);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -154,7 +158,7 @@ public class FacetIndexer {
 	    theDocument.add(new Field("source", "N-Lighten", Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    paths.add(new CategoryPath("Source/N-Lighten", '/'));
 
-	    theDocument.add(new Field("uri", subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://alaska.dev.eagle-i.net/institution/#inst?uri="+subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (label != null ) {
 		theDocument.add(new Field("label", label, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", label, Field.Store.NO, Field.Index.ANALYZED));
@@ -188,7 +192,7 @@ public class FacetIndexer {
 	    String label = sol.get("?lab") == null ? null : sol.get("?lab").asLiteral().getString();
 	    String description = sol.get("?desc") == null ? null : sol.get("?desc").asLiteral().getString();
 	    
-	    logger.info("uri: " + subjectURI + "\t" + label);
+	    logger.debug("uri: " + subjectURI + "\t" + label);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -196,7 +200,7 @@ public class FacetIndexer {
 	    theDocument.add(new Field("source", "N-Lighten", Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    paths.add(new CategoryPath("Source/N-Lighten", '/'));
 
-	    theDocument.add(new Field("uri", subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://alaska.dev.eagle-i.net/institution/#inst?uri="+subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (label != null ) {
 		theDocument.add(new Field("label", label, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", label, Field.Store.NO, Field.Index.ANALYZED));
@@ -225,7 +229,7 @@ public class FacetIndexer {
 	    String name = rs.getString(2);
 	    String bio = rs.getString(3);
 	    
-	    logger.info("login: " + login + "\t" + name);
+	    logger.debug("login: " + login + "\t" + name);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -265,7 +269,7 @@ public class FacetIndexer {
 	    String name = rs.getString(2);
 	    String bio = rs.getString(3);
 	    
-	    logger.info("login: " + login + "\t" + name);
+	    logger.debug("login: " + login + "\t" + name);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -307,7 +311,7 @@ public class FacetIndexer {
 	    String description = rs.getString(4);
 	    String language = rs.getString(5);
 	    
-	    logger.info("name: " + fullName);
+	    logger.debug("name: " + fullName);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -362,7 +366,7 @@ public class FacetIndexer {
 	    String title = rs.getString(2);
 	    String site = rs.getString(3);
 	    
-	    logger.info("login: " + name + "\t" + site);
+	    logger.debug("login: " + name + "\t" + site);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -422,7 +426,7 @@ public class FacetIndexer {
 	    String type = rs.getString(6);
 	    String condition = rs.getString(7);
 	    
-	    logger.info("trial: " + nctID + "\t" + briefTitle);
+	    logger.debug("trial: " + nctID + "\t" + briefTitle);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -500,7 +504,7 @@ public class FacetIndexer {
 	    boolean ctsa = rs.getBoolean(7);
 	    String platform = rs.getString(8);
 	    
-	    logger.info("site: " + site + "\t" + lastName + ", " + firstName);
+	    logger.debug("site: " + site + "\t" + lastName + ", " + firstName);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -562,7 +566,7 @@ public class FacetIndexer {
 	    String docNum = rs.getString(5);
 	    String uri = rs.getString(6);
 
-	    logger.info("FOA: " + primaryIC + ", " + docNum + "\t" + title);
+	    logger.debug("FOA: " + primaryIC + ", " + docNum + "\t" + title);
 
 	    PreparedStatement contentStmt = conn.prepareStatement("select html from NIH_FOA.content where id = ?");
 	    contentStmt.setInt(1, ID);
@@ -622,7 +626,7 @@ public class FacetIndexer {
 	    String creators = rs.getString(6);
 	    String meshterms = rs.getString(7);
 
-	    logger.info("dataset: " + ID + "\t" + title);
+	    logger.debug("dataset: " + ID + "\t" + title);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -650,6 +654,66 @@ public class FacetIndexer {
 	    else
 		paths.add(new CategoryPath("Source/DataMed/unknown", '/'));
 	    paths.add(new CategoryPath("Entity/Data Set", '/'));
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	}
+	stmt.close();
+	logger.info("\t datasets indexed: " + count);
+    }
+
+/* doi
+ * title
+ * container title is subsource
+ * description
+ * subtype - entity subtype - 335 values
+ * resource_type_id - alternative entity subtype - 15 values
+*/    @SuppressWarnings("deprecation")
+    static void indexDataCite(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+	int count = 0;
+	logger.info("indexing DataCite datasets...");
+	PreparedStatement stmt = conn.prepareStatement("select doi,title,container_title,description,resource_type_id from datacite.dataset");
+	ResultSet rs = stmt.executeQuery();
+
+	while (rs.next()) {
+	    count++;
+	    String doi = rs.getString(1);
+	    String title = rs.getString(2);
+	    String source = rs.getString(3);
+	    String description = rs.getString(4);
+	    String subtype = rs.getString(5);
+
+	    logger.debug("dataset: " + doi + "\t" + title);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+
+	    theDocument.add(new Field("source", "DataCite", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://doi.org/"+doi, Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+	    if (title == null) {
+		theDocument.add(new Field("label", "DataCite "+doi, Field.Store.YES, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));		
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+		
+	    if (description != null)
+		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
+
+	    if (source != null && source.length() > 1)
+		try {
+		    paths.add(new CategoryPath("Source/DataCite/" + source.replaceAll("/", "_"), '/'));
+		} catch (Exception e) {
+		    logger.error("error adding source facet", e);
+		}
+	    else
+		paths.add(new CategoryPath("Source/DataCite/unknown", '/'));
+	    
+	    if (subtype != null && subtype.length() > 1)
+		paths.add(new CategoryPath("Entity/Data Set/" + subtype, '/'));
+	    else
+		paths.add(new CategoryPath("Entity/Data Set/unknown", '/'));
 
 	    facetFields.addFields(theDocument, paths);
 	    indexWriter.addDocument(theDocument);
