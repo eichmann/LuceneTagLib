@@ -93,6 +93,12 @@
     <type>pom</type>
     <version>3.0.0</version>
     </dependency>
+		<dependency>
+			<groupId>net.sf.squirrel-sql.thirdparty-non-maven</groupId>
+			<artifactId>java-cup</artifactId>
+			<version>0.11a</version>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
