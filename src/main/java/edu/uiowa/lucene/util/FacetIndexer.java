@@ -54,6 +54,7 @@ public class FacetIndexer {
     public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException, JspTagException {
         PropertyConfigurator.configure("/Users/eichmann/Documents/Components/log4j.info");
 	conn = getConnection();
+
 	indexDir = FSDirectory.open(new File("/usr/local/CD2H/lucene/facet_test"));
 	taxoDir = FSDirectory.open(new File("/usr/local/CD2H/lucene/facet_test_tax"));
 
