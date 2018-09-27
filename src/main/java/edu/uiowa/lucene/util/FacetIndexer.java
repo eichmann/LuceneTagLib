@@ -67,27 +67,30 @@ public class FacetIndexer {
 	// Reused across documents, to add the necessary facet fields
 	FacetFields facetFields = new FacetFields(taxoWriter);
 
-	indexGitHubUsers(indexWriter, facetFields);
-	indexGitHubOrganizations(indexWriter, facetFields);
-	indexGitHubRepositories(indexWriter, facetFields);
+//	indexGitHubUsers(indexWriter, facetFields);
+//	indexGitHubOrganizations(indexWriter, facetFields);
+//	indexGitHubRepositories(indexWriter, facetFields);
+//
+//	indexNLightenUsers(indexWriter, facetFields);
+//	indexNLightenOrganizations(indexWriter, facetFields);
+//	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Movie", "Movie");
+//	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Course", "Course");
+//	indexNLightenResource(indexWriter, facetFields, "http://vivoweb.org/ontology/core#CaseStudy", "Case Study");
+//	indexNLightenResource(indexWriter, facetFields, "http://purl.org/n-lighten/NLN_0000041", "Resource Material");
+//	
+//	indexCTSAsearch(indexWriter, facetFields);
+//
+//	indexClinicalTrialOfficialContact(indexWriter, facetFields);
+//	indexClinicalTrials(indexWriter, facetFields);
+//	
+//	indexNIHFOA(indexWriter, facetFields);
+//
+//	indexDataMed(indexWriter, facetFields);
+//	
+//	indexDataCite(indexWriter, facetFields);
 
-	indexNLightenUsers(indexWriter, facetFields);
-	indexNLightenOrganizations(indexWriter, facetFields);
-	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Movie", "Movie");
-	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Course", "Course");
-	indexNLightenResource(indexWriter, facetFields, "http://vivoweb.org/ontology/core#CaseStudy", "Case Study");
-	indexNLightenResource(indexWriter, facetFields, "http://purl.org/n-lighten/NLN_0000041", "Resource Material");
-	
-	indexCTSAsearch(indexWriter, facetFields);
-
-	indexClinicalTrialOfficialContact(indexWriter, facetFields);
-	indexClinicalTrials(indexWriter, facetFields);
-	
-	indexNIHFOA(indexWriter, facetFields);
-
-	indexDataMed(indexWriter, facetFields);
-	
-	indexDataCite(indexWriter, facetFields);
+	indexDIAMONDAssessments(indexWriter, facetFields);
+	indexDIAMONDTrainingMaterials(indexWriter, facetFields);
 
 	taxoWriter.close();
 	indexWriter.close();
@@ -723,11 +726,145 @@ public class FacetIndexer {
 	logger.info("\t datasets indexed: " + count);
     }
 
+@SuppressWarnings("deprecation")
+static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+	int count = 0;
+	logger.info("indexing DIAMOND assessments...");
+	PreparedStatement stmt = conn.prepareStatement("select id,title,assessment_methods,subject_area,bp_categories,learning_level from diamond.assessment");
+	ResultSet rs = stmt.executeQuery();
+
+	while (rs.next()) {
+	    count++;
+	    int ID = rs.getInt(1);
+	    String title = rs.getString(2);
+	    String assessment_methods = rs.getString(3);
+	    String subject_area = rs.getString(4);
+	    String bp_categories = rs.getString(5);
+	    String learning_level = rs.getString(6);
+
+	    logger.info("assessment: " + ID + "\t" + title);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+
+	    theDocument.add(new Field("source", "DIAMOND", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://diamondportal.org/assessments/"+ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+	    if (title == null) {
+		theDocument.add(new Field("label", "DIAMOND "+ID, Field.Store.YES, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));		
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+		
+	    if (assessment_methods != null)
+		theDocument.add(new Field("content", assessment_methods, Field.Store.NO, Field.Index.ANALYZED));
+	    if (subject_area != null)
+		theDocument.add(new Field("content", subject_area, Field.Store.NO, Field.Index.ANALYZED));
+	    if (bp_categories != null)
+		theDocument.add(new Field("content", bp_categories, Field.Store.NO, Field.Index.ANALYZED));
+	    if (learning_level != null)
+		theDocument.add(new Field("content", learning_level, Field.Store.NO, Field.Index.ANALYZED));
+
+	    paths.add(new CategoryPath("Source/DIAMOND", '/'));
+	    paths.add(new CategoryPath("Entity/Educational Resource/Assessment", '/'));
+	    paths.add(new CategoryPath("Learning Level/"+learning_level, '/'));
+	    for (String assessment : assessment_methods.split(",")) {
+		paths.add(new CategoryPath("Assessment Method/"+assessment.trim(), '/'));
+	    }
+	    
+	    PreparedStatement domainStmt = conn.prepareStatement("select domain from diamond.competency_domain where type='assessments' and id=?");
+	    domainStmt.setInt(1, ID);
+	    ResultSet domainRS = domainStmt.executeQuery();
+	    while (domainRS.next()) {
+		paths.add(new CategoryPath("Competency Domain/"+domainRS.getString(1), '/'));
+	    }
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	}
+	stmt.close();
+	logger.info("\t assessments indexed: " + count);
+}
+
+@SuppressWarnings("deprecation")
+static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+	int count = 0;
+	logger.info("indexing DIAMOND training materials...");
+	PreparedStatement stmt = conn.prepareStatement("select id,title,keywords,subject_area,learning_objectives,delivery_method,target_learners,learning_level from diamond.training_material");
+	ResultSet rs = stmt.executeQuery();
+
+	while (rs.next()) {
+	    count++;
+	    int ID = rs.getInt(1);
+	    String title = rs.getString(2);
+	    String keywords = rs.getString(3);
+	    String subject_area = rs.getString(4);
+	    String learning_objectives = rs.getString(5);
+	    String delivery_method = rs.getString(6);
+	    String target_learners = rs.getString(7);
+	    String learning_level = rs.getString(8);
+
+	    logger.info("training material: " + ID + "\t" + title);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+
+	    theDocument.add(new Field("source", "DIAMOND", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://diamondportal.org/trainings/"+ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+	    if (title == null) {
+		theDocument.add(new Field("label", "DIAMOND "+ID, Field.Store.YES, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));		
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+		
+	    if (keywords != null)
+		theDocument.add(new Field("content", keywords, Field.Store.NO, Field.Index.ANALYZED));
+	    if (subject_area != null)
+		theDocument.add(new Field("content", subject_area, Field.Store.NO, Field.Index.ANALYZED));
+	    if (learning_objectives != null)
+		theDocument.add(new Field("content", learning_objectives, Field.Store.NO, Field.Index.ANALYZED));
+	    if (delivery_method != null)
+		theDocument.add(new Field("content", delivery_method, Field.Store.NO, Field.Index.ANALYZED));
+	    if (target_learners != null)
+		theDocument.add(new Field("content", target_learners, Field.Store.NO, Field.Index.ANALYZED));
+	    if (learning_level != null)
+		theDocument.add(new Field("content", learning_level, Field.Store.NO, Field.Index.ANALYZED));
+
+	    paths.add(new CategoryPath("Source/DIAMOND", '/'));
+	    paths.add(new CategoryPath("Entity/Educational Resource/Training Material", '/'));
+	    paths.add(new CategoryPath("Delivery Method/"+delivery_method, '/'));
+	    paths.add(new CategoryPath("Learning Level/"+learning_level, '/'));
+	    for (String keyword : keywords.split(",")) {
+		paths.add(new CategoryPath("Keyword/"+keyword.trim(), '/'));
+	    }
+	    for (String learner : target_learners.split(";")) {
+		paths.add(new CategoryPath("Entity/Person/"+learner.trim(), '/'));
+	    }
+	    
+	    PreparedStatement domainStmt = conn.prepareStatement("select domain from diamond.competency_domain where type='trainings' and id=?");
+	    domainStmt.setInt(1, ID);
+	    ResultSet domainRS = domainStmt.executeQuery();
+	    while (domainRS.next()) {
+		paths.add(new CategoryPath("Competency Domain/"+domainRS.getString(1), '/'));
+	    }
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	}
+	stmt.close();
+	logger.info("\t training materials indexed: " + count);
+}
+
     public static Connection getConnection() throws SQLException, ClassNotFoundException {
 	Class.forName("org.postgresql.Driver");
 	Properties props = new Properties();
-	props.setProperty("user", "");
-	props.setProperty("password", "");
+	props.setProperty("user", "eichmann");
+	props.setProperty("password", "translational");
 //	if (use_ssl.equals("true")) {
 //	    props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
 //	    props.setProperty("ssl", "true");
