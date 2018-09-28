@@ -792,19 +792,20 @@ static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFi
 static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing DIAMOND training materials...");
-	PreparedStatement stmt = conn.prepareStatement("select id,title,keywords,subject_area,learning_objectives,delivery_method,target_learners,learning_level from diamond.training_material");
+	PreparedStatement stmt = conn.prepareStatement("select id,title,abstract,keywords,subject_area,learning_objectives,delivery_method,target_learners,learning_level from diamond.training_material");
 	ResultSet rs = stmt.executeQuery();
 
 	while (rs.next()) {
 	    count++;
 	    int ID = rs.getInt(1);
 	    String title = rs.getString(2);
-	    String keywords = rs.getString(3);
-	    String subject_area = rs.getString(4);
-	    String learning_objectives = rs.getString(5);
-	    String delivery_method = rs.getString(6);
-	    String target_learners = rs.getString(7);
-	    String learning_level = rs.getString(8);
+	    String abstr = rs.getString(3);
+	    String keywords = rs.getString(4);
+	    String subject_area = rs.getString(5);
+	    String learning_objectives = rs.getString(6);
+	    String delivery_method = rs.getString(7);
+	    String target_learners = rs.getString(8);
+	    String learning_level = rs.getString(9);
 
 	    logger.info("training material: " + ID + "\t" + title);
 
@@ -822,6 +823,8 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
 	    }
 		
+	    if (abstr != null)
+		theDocument.add(new Field("content", abstr, Field.Store.NO, Field.Index.ANALYZED));
 	    if (keywords != null)
 		theDocument.add(new Field("content", keywords, Field.Store.NO, Field.Index.ANALYZED));
 	    if (subject_area != null)
