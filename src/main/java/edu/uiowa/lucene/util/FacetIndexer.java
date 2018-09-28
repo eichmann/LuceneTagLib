@@ -37,7 +37,8 @@ public class FacetIndexer {
     static Logger logger = Logger.getLogger(FacetIndexer.class);
     static private Directory indexDir = null;
     static private Directory taxoDir = null;
-    static Connection conn = null;
+    static Connection wintermuteConn = null;
+    static Connection deepConn = null;
 
 	static protected String prefix = 
 		"PREFIX ld4l: <http://bib.ld4l.org/ontology/>"
@@ -53,7 +54,8 @@ public class FacetIndexer {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException, JspTagException {
         PropertyConfigurator.configure("/Users/eichmann/Documents/Components/log4j.info");
-	conn = getConnection();
+	wintermuteConn = getConnection("wintermute.slis.uiowa.edu");
+	deepConn = getConnection("deep-thought.slis.uiowa.edu");
 
 	indexDir = FSDirectory.open(new File("/usr/local/CD2H/lucene/facet_test"));
 	taxoDir = FSDirectory.open(new File("/usr/local/CD2H/lucene/facet_test_tax"));
@@ -67,27 +69,27 @@ public class FacetIndexer {
 	// Reused across documents, to add the necessary facet fields
 	FacetFields facetFields = new FacetFields(taxoWriter);
 
-//	indexGitHubUsers(indexWriter, facetFields);
-//	indexGitHubOrganizations(indexWriter, facetFields);
-//	indexGitHubRepositories(indexWriter, facetFields);
-//
-//	indexNLightenUsers(indexWriter, facetFields);
-//	indexNLightenOrganizations(indexWriter, facetFields);
-//	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Movie", "Movie");
-//	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Course", "Course");
-//	indexNLightenResource(indexWriter, facetFields, "http://vivoweb.org/ontology/core#CaseStudy", "Case Study");
-//	indexNLightenResource(indexWriter, facetFields, "http://purl.org/n-lighten/NLN_0000041", "Resource Material");
-//	
-//	indexCTSAsearch(indexWriter, facetFields);
-//
-//	indexClinicalTrialOfficialContact(indexWriter, facetFields);
-//	indexClinicalTrials(indexWriter, facetFields);
-//	
-//	indexNIHFOA(indexWriter, facetFields);
-//
-//	indexDataMed(indexWriter, facetFields);
-//	
-//	indexDataCite(indexWriter, facetFields);
+	indexGitHubUsers(indexWriter, facetFields);
+	indexGitHubOrganizations(indexWriter, facetFields);
+	indexGitHubRepositories(indexWriter, facetFields);
+
+	indexNLightenUsers(indexWriter, facetFields);
+	indexNLightenOrganizations(indexWriter, facetFields);
+	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Movie", "Movie");
+	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Course", "Course");
+	indexNLightenResource(indexWriter, facetFields, "http://vivoweb.org/ontology/core#CaseStudy", "Case Study");
+	indexNLightenResource(indexWriter, facetFields, "http://purl.org/n-lighten/NLN_0000041", "Resource Material");
+	
+	indexCTSAsearch(indexWriter, facetFields);
+
+	indexClinicalTrialOfficialContact(indexWriter, facetFields);
+	indexClinicalTrials(indexWriter, facetFields);
+	
+	indexNIHFOA(indexWriter, facetFields);
+
+	indexDataMed(indexWriter, facetFields);
+	
+	indexDataCite(indexWriter, facetFields);
 
 	indexDIAMONDAssessments(indexWriter, facetFields);
 	indexDIAMONDTrainingMaterials(indexWriter, facetFields);
@@ -226,7 +228,7 @@ public class FacetIndexer {
     static void indexGitHubUsers(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing GitHub users...");
-	PreparedStatement stmt = conn.prepareStatement("select login,name,bio from github.user,github.search_user where uid=id and relevant");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select login,name,bio from github.user,github.search_user where uid=id and relevant");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String login = rs.getString(1);
@@ -266,7 +268,7 @@ public class FacetIndexer {
     static void indexGitHubOrganizations(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing GitHub organizations...");
-	PreparedStatement stmt = conn.prepareStatement("select login,name,description from github.organization,github.search_organization where orgid=id and relevant");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select login,name,description from github.organization,github.search_organization where orgid=id and relevant");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String login = rs.getString(1);
@@ -306,7 +308,7 @@ public class FacetIndexer {
     static void indexGitHubRepositories(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing GitHub repositories...");
-	PreparedStatement stmt = conn.prepareStatement("select id,name,full_name,description,language from github.repository,github.search_repository where id=rid and relevant");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select id,name,full_name,description,language from github.repository,github.search_repository where id=rid and relevant");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    int ID = rs.getInt(1);
@@ -341,7 +343,7 @@ public class FacetIndexer {
 		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
 	    }
 	    
-	    PreparedStatement readStmt = conn.prepareStatement("select readme from github.readme where id=?");
+	    PreparedStatement readStmt = wintermuteConn.prepareStatement("select readme from github.readme where id=?");
 	    readStmt.setInt(1, ID);
 	    ResultSet readRS = readStmt.executeQuery();
 	    while (readRS.next()) {
@@ -363,7 +365,7 @@ public class FacetIndexer {
     static void indexClinicalTrialOfficialContact(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing ClinicalTrials.gov official contacts...");
-	PreparedStatement stmt = conn.prepareStatement("select last_name,role,affiliation,count(*) from clinical_trials.overall_official group by 1,2,3 order by 4 desc");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select last_name,role,affiliation,count(*) from clinical_trials.overall_official group by 1,2,3 order by 4 desc");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String name = rs.getString(1);
@@ -399,7 +401,7 @@ public class FacetIndexer {
 		theDocument.add(new Field("site", site, Field.Store.YES, Field.Index.NOT_ANALYZED));
 		theDocument.add(new Field("content", site, Field.Store.NO, Field.Index.ANALYZED));
 		try {
-		    paths.add(new CategoryPath("Site/"+site, '/'));
+		    paths.add(new CategoryPath("Site/"+site.replaceAll("/", "_"), '/'));
 		} catch (Exception e) {
 		    logger.error("error adding site facet", e);
 		}
@@ -419,7 +421,7 @@ public class FacetIndexer {
     static void indexClinicalTrials(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing ClinicalTrials.gov trials...");
-	PreparedStatement stmt = conn.prepareStatement("select nct_id,brief_title,official_title,overall_status,phase,study_type,condition from clinical_trials.clinical_study");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select nct_id,brief_title,official_title,overall_status,phase,study_type,condition from clinical_trials.clinical_study");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String nctID = rs.getString(1);
@@ -497,7 +499,7 @@ public class FacetIndexer {
     static void indexCTSAsearch(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing CTSAsearch...");
-	PreparedStatement stmt = conn.prepareStatement("select distinct person_real.id,site,uri,first_name,last_name,title,ctsa,platform from vivo_aggregated.person_real,vivo.site where person_real.id=site.id and uri!~'pubid' order by site,last_name,first_name");
+	PreparedStatement stmt = deepConn.prepareStatement("select distinct person_real.id,site,uri,first_name,last_name,title,ctsa,platform from vivo_aggregated.person_real,vivo.site where person_real.id=site.id and uri!~'pubid' order by site,last_name,first_name");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String site = rs.getString(2);
@@ -534,7 +536,7 @@ public class FacetIndexer {
 		theDocument.add(new Field("title", title, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
 		try {
-		    paths.add(new CategoryPath("Entity/Person/"+title, '/'));
+		    paths.add(new CategoryPath("Entity/Person/"+title.replaceAll("/", "_"), '/'));
 		} catch (Exception e) {
 		    logger.error("error adding title facet", e);
 		}
@@ -558,7 +560,7 @@ public class FacetIndexer {
     static void indexNIHFOA(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing NIH FOAs...");
-	PreparedStatement stmt = conn.prepareStatement("select id,title,purpose,primary_ic,doc_num,guide_link from NIH_FOA.guide_doc order by id");
+	PreparedStatement stmt = deepConn.prepareStatement("select id,title,purpose,primary_ic,doc_num,guide_link from NIH_FOA.guide_doc order by id");
 	ResultSet rs = stmt.executeQuery();
 
 	while (rs.next()) {
@@ -572,7 +574,7 @@ public class FacetIndexer {
 
 	    logger.debug("FOA: " + primaryIC + ", " + docNum + "\t" + title);
 
-	    PreparedStatement contentStmt = conn.prepareStatement("select html from NIH_FOA.content where id = ?");
+	    PreparedStatement contentStmt = deepConn.prepareStatement("select html from NIH_FOA.content where id = ?");
 	    contentStmt.setInt(1, ID);
 	    ResultSet crs = contentStmt.executeQuery();
 	    while (crs.next()) {
@@ -596,7 +598,7 @@ public class FacetIndexer {
 		paths.add(new CategoryPath("Source/NIH FOA", '/'));
 		paths.add(new CategoryPath("Site/NIH/" + primaryIC, '/'));
 		
-		PreparedStatement activityStmt = conn.prepareStatement("select code from nih_foa.activity_code where id = ?");
+		PreparedStatement activityStmt = deepConn.prepareStatement("select code from nih_foa.activity_code where id = ?");
 		activityStmt.setInt(1, ID);
 		ResultSet activityRS = activityStmt.executeQuery();
 		while (activityRS.next()) {
@@ -617,7 +619,7 @@ public class FacetIndexer {
     static void indexDataMed(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing DataMed datasets...");
-	PreparedStatement stmt = conn.prepareStatement("select id,title,source,landing_page,description,creators,meshterms from datamed.dataset where landing_page is not null");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select id,title,source,landing_page,description,creators,meshterms from datamed.dataset where landing_page is not null");
 	ResultSet rs = stmt.executeQuery();
 
 	while (rs.next()) {
@@ -663,7 +665,7 @@ public class FacetIndexer {
 	    indexWriter.addDocument(theDocument);
 	}
 	stmt.close();
-	logger.info("\t datasets indexed: " + count);
+	logger.info("\tdatasets indexed: " + count);
     }
 
 /* doi
@@ -676,7 +678,7 @@ public class FacetIndexer {
     static void indexDataCite(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing DataCite datasets...");
-	PreparedStatement stmt = conn.prepareStatement("select doi,title,container_title,description,resource_type_id from datacite.dataset");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select doi,title,container_title,description,resource_type_id from datacite.dataset");
 	ResultSet rs = stmt.executeQuery();
 
 	while (rs.next()) {
@@ -688,6 +690,8 @@ public class FacetIndexer {
 	    String subtype = rs.getString(5);
 
 	    logger.debug("dataset: " + doi + "\t" + title);
+	    if (count % 1000000 == 0)
+		logger.info("\tdataset count: " + count + "...");
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -723,14 +727,14 @@ public class FacetIndexer {
 	    indexWriter.addDocument(theDocument);
 	}
 	stmt.close();
-	logger.info("\t datasets indexed: " + count);
+	logger.info("\tdatasets indexed: " + count);
     }
 
 @SuppressWarnings("deprecation")
 static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing DIAMOND assessments...");
-	PreparedStatement stmt = conn.prepareStatement("select id,title,assessment_methods,subject_area,bp_categories,learning_level from diamond.assessment");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select id,title,assessment_methods,subject_area,bp_categories,learning_level from diamond.assessment");
 	ResultSet rs = stmt.executeQuery();
 
 	while (rs.next()) {
@@ -742,7 +746,7 @@ static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFi
 	    String bp_categories = rs.getString(5);
 	    String learning_level = rs.getString(6);
 
-	    logger.info("assessment: " + ID + "\t" + title);
+	    logger.debug("assessment: " + ID + "\t" + title);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -774,7 +778,7 @@ static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFi
 		paths.add(new CategoryPath("Assessment Method/"+assessment.trim(), '/'));
 	    }
 	    
-	    PreparedStatement domainStmt = conn.prepareStatement("select domain from diamond.competency_domain where type='assessments' and id=?");
+	    PreparedStatement domainStmt = wintermuteConn.prepareStatement("select domain from diamond.competency_domain where type='assessments' and id=?");
 	    domainStmt.setInt(1, ID);
 	    ResultSet domainRS = domainStmt.executeQuery();
 	    while (domainRS.next()) {
@@ -785,14 +789,14 @@ static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFi
 	    indexWriter.addDocument(theDocument);
 	}
 	stmt.close();
-	logger.info("\t assessments indexed: " + count);
+	logger.info("\tassessments indexed: " + count);
 }
 
 @SuppressWarnings("deprecation")
 static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing DIAMOND training materials...");
-	PreparedStatement stmt = conn.prepareStatement("select id,title,abstract,keywords,subject_area,learning_objectives,delivery_method,target_learners,learning_level from diamond.training_material");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select id,title,abstract,keywords,subject_area,learning_objectives,delivery_method,target_learners,learning_level from diamond.training_material");
 	ResultSet rs = stmt.executeQuery();
 
 	while (rs.next()) {
@@ -807,7 +811,7 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 	    String target_learners = rs.getString(8);
 	    String learning_level = rs.getString(9);
 
-	    logger.info("training material: " + ID + "\t" + title);
+	    logger.debug("training material: " + ID + "\t" + title);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -849,7 +853,7 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 		paths.add(new CategoryPath("Entity/Person/"+learner.trim(), '/'));
 	    }
 	    
-	    PreparedStatement domainStmt = conn.prepareStatement("select domain from diamond.competency_domain where type='trainings' and id=?");
+	    PreparedStatement domainStmt = wintermuteConn.prepareStatement("select domain from diamond.competency_domain where type='trainings' and id=?");
 	    domainStmt.setInt(1, ID);
 	    ResultSet domainRS = domainStmt.executeQuery();
 	    while (domainRS.next()) {
@@ -860,10 +864,10 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 	    indexWriter.addDocument(theDocument);
 	}
 	stmt.close();
-	logger.info("\t training materials indexed: " + count);
+	logger.info("\ttraining materials indexed: " + count);
 }
 
-    public static Connection getConnection() throws SQLException, ClassNotFoundException {
+    public static Connection getConnection(String host) throws SQLException, ClassNotFoundException {
 	Class.forName("org.postgresql.Driver");
 	Properties props = new Properties();
 	props.setProperty("user", "");
@@ -872,7 +876,7 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 //	    props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
 //	    props.setProperty("ssl", "true");
 //	}
-	Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost/loki", props);
+	Connection conn = DriverManager.getConnection("jdbc:postgresql://"+host+"/loki", props);
 	conn.setAutoCommit(false);
 	return conn;
     }
