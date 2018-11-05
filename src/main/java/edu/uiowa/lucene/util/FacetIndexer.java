@@ -8,8 +8,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
+import java.util.Vector;
 
 import javax.servlet.jsp.JspTagException;
 
@@ -39,6 +41,8 @@ public class FacetIndexer {
     static private Directory taxoDir = null;
     static Connection wintermuteConn = null;
     static Connection deepConn = null;
+    
+    static Hashtable<String, Vector<String>> gitHubCategoryCache = new Hashtable<String, Vector<String>>();
 
 	static protected String prefix = 
 		"PREFIX ld4l: <http://bib.ld4l.org/ontology/>"
@@ -69,6 +73,7 @@ public class FacetIndexer {
 	// Reused across documents, to add the necessary facet fields
 	FacetFields facetFields = new FacetFields(taxoWriter);
 
+	populateGitHubCategoryCache();
 	indexGitHubUsers(indexWriter, facetFields);
 	indexGitHubOrganizations(indexWriter, facetFields);
 	indexGitHubRepositories(indexWriter, facetFields);
@@ -330,6 +335,11 @@ public class FacetIndexer {
 		theDocument.add(new Field("content", language, Field.Store.NO, Field.Index.ANALYZED));
 		paths.add(new CategoryPath("Entity/Repository/"+language, '/'));
 	    }
+	    
+	    if (gitHubCategoryCache.containsKey(fullName))
+		for (String categoryPath : gitHubCategoryCache.get(fullName)) {
+		    paths.add(new CategoryPath(categoryPath, '/'));
+		}
 
 	    theDocument.add(new Field("uri", "http://github.com/"+fullName, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    if (name != null ) {
@@ -359,6 +369,23 @@ public class FacetIndexer {
 	}
 	stmt.close();
 	logger.info("\trepositories indexed: " + count);
+    }
+    
+    static void populateGitHubCategoryCache() throws SQLException {
+	logger.info("loading GitHub facet annotations...");
+	logger.info("\teducational material...");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select full_name from github.repository where name~'^BDK[0-9]' order by name");
+	ResultSet rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String name = rs.getString(1);
+	    Vector<String> categories = gitHubCategoryCache.get(name);
+	    if (categories == null) {
+		categories = new Vector<String>();
+		gitHubCategoryCache.put(name, categories);
+	    }
+	    categories.add("Entity/Educational Resource/unknown");
+	}
+	stmt.close();
     }
     
     @SuppressWarnings("deprecation")
@@ -870,8 +897,8 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
     public static Connection getConnection(String host) throws SQLException, ClassNotFoundException {
 	Class.forName("org.postgresql.Driver");
 	Properties props = new Properties();
-	props.setProperty("user", "");
-	props.setProperty("password", "");
+	props.setProperty("user", "eichmann");
+	props.setProperty("password", "translational");
 //	if (use_ssl.equals("true")) {
 //	    props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
 //	    props.setProperty("ssl", "true");
