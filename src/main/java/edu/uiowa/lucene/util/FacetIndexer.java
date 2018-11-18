@@ -873,12 +873,14 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 	    paths.add(new CategoryPath("Entity/Educational Resource/Training Material", '/'));
 	    paths.add(new CategoryPath("Delivery Method/"+delivery_method, '/'));
 	    paths.add(new CategoryPath("Learning Level/"+learning_level, '/'));
-	    for (String keyword : keywords.split(",")) {
-		paths.add(new CategoryPath("Keyword/"+keyword.trim(), '/'));
-	    }
-	    for (String learner : target_learners.split(";")) {
-		paths.add(new CategoryPath("Entity/Person/"+learner.trim(), '/'));
-	    }
+	    if (keywords != null)
+		for (String keyword : keywords.split(",")) {
+		    paths.add(new CategoryPath("Keyword/"+keyword.trim(), '/'));
+		}
+	    if (target_learners != null)
+		for (String learner : target_learners.split(";")) {
+		    paths.add(new CategoryPath("Entity/Person/"+learner.trim(), '/'));
+		}
 	    
 	    PreparedStatement domainStmt = wintermuteConn.prepareStatement("select domain from diamond.competency_domain where type='trainings' and id=?");
 	    domainStmt.setInt(1, ID);
