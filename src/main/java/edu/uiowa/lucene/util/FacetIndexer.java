@@ -27,8 +27,12 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.facet.index.FacetFields;
+import org.apache.lucene.facet.params.FacetIndexingParams;
 import org.apache.lucene.facet.taxonomy.CategoryPath;
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter.OrdinalMap;
+import org.apache.lucene.facet.util.TaxonomyMergeUtils;
+import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
@@ -41,6 +45,17 @@ public class FacetIndexer {
     static private Directory taxoDir = null;
     static Connection wintermuteConn = null;
     static Connection deepConn = null;
+    static String pathPrefix = "/usr/local/CD2H/lucene/";
+    static String[] sites = {
+	    			pathPrefix + "github",
+	    			pathPrefix + "nlighten",
+	    			pathPrefix + "clinical_trials",
+	    			pathPrefix + "nih_foa",
+	    			pathPrefix + "datamed",
+	    			pathPrefix + "datacite",
+	    			pathPrefix + "diamond",
+	    			"/usr/local/RAID/CTSAsearch/lucene/ctsasearch"
+	    			};
     
     static Hashtable<String, Vector<String>> gitHubCategoryCache = new Hashtable<String, Vector<String>>();
 
@@ -57,12 +72,46 @@ public class FacetIndexer {
 			+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>";
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException, JspTagException {
-        PropertyConfigurator.configure("/Users/eichmann/Documents/Components/log4j.info");
+        PropertyConfigurator.configure(args[0]);
 	wintermuteConn = getConnection("wintermute.slis.uiowa.edu");
 	deepConn = getConnection("deep-thought.slis.uiowa.edu");
 
-	indexDir = FSDirectory.open(new File("/usr/local/CD2H/lucene/facet_test"));
-	taxoDir = FSDirectory.open(new File("/usr/local/CD2H/lucene/facet_test_tax"));
+	indexGitHub();
+	indexNLighten();
+	indexClinicalTrials();
+	indexNIHFOA();
+	indexDataMed();
+	indexDataCite();
+	indexDIAMOND();
+    }
+    
+    public static void mergeIndices(String[] requests, String sitePathPrefix, String targetPath) throws SQLException, CorruptIndexException, IOException {
+	IndexWriterConfig config = new IndexWriterConfig(org.apache.lucene.util.Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	config.setRAMBufferSizeMB(500);
+	IndexWriter theWriter = new IndexWriter(FSDirectory.open(new File(targetPath)), config);
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(FSDirectory.open(new File(targetPath + "_tax")));
+	OrdinalMap map = new org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter.MemoryOrdinalMap();
+	FacetIndexingParams params = new FacetIndexingParams();
+	
+	logger.info("sites: " + requests);
+	for (String site : requests) {
+	    logger.info("merging " + site + "...");
+	    Directory index = FSDirectory.open(new File(site));
+	    Directory index_tax = FSDirectory.open(new File(site + "_tax"));
+	    TaxonomyMergeUtils.merge(index, index_tax, map, theWriter, taxoWriter, params);
+	    index_tax.close();
+	    index.close();
+	}
+
+	taxoWriter.close();
+	theWriter.close();
+	logger.info("done");
+    }
+
+    static void indexGitHub() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "github"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "github_tax"));
 
 	IndexWriter indexWriter = new IndexWriter(indexDir,
 		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
@@ -72,30 +121,130 @@ public class FacetIndexer {
 
 	// Reused across documents, to add the necessary facet fields
 	FacetFields facetFields = new FacetFields(taxoWriter);
-
+	
 	populateGitHubCategoryCache();
 	indexGitHubUsers(indexWriter, facetFields);
 	indexGitHubOrganizations(indexWriter, facetFields);
 	indexGitHubRepositories(indexWriter, facetFields);
 
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexNLighten() throws IOException, JspTagException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "nlighten"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "nlighten_tax"));
+
+	IndexWriter indexWriter = new IndexWriter(indexDir,
+		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+	
 	indexNLightenUsers(indexWriter, facetFields);
 	indexNLightenOrganizations(indexWriter, facetFields);
 	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Movie", "Movie");
 	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Course", "Course");
 	indexNLightenResource(indexWriter, facetFields, "http://vivoweb.org/ontology/core#CaseStudy", "Case Study");
 	indexNLightenResource(indexWriter, facetFields, "http://purl.org/n-lighten/NLN_0000041", "Resource Material");
-	
-	indexCTSAsearch(indexWriter, facetFields);
 
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexClinicalTrials() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "clinical_trials"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "clinical_trials_tax"));
+
+	IndexWriter indexWriter = new IndexWriter(indexDir,
+		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+	
 	indexClinicalTrialOfficialContact(indexWriter, facetFields);
 	indexClinicalTrials(indexWriter, facetFields);
+
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexNIHFOA() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "nih_foa"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "nih_foa_tax"));
+
+	IndexWriter indexWriter = new IndexWriter(indexDir,
+		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
 	
 	indexNIHFOA(indexWriter, facetFields);
 
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexDataMed() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "datamed"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "datamed_tax"));
+
+	IndexWriter indexWriter = new IndexWriter(indexDir,
+		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+	
 	indexDataMed(indexWriter, facetFields);
+
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexDataCite() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "datacite"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "datacite_tax"));
+
+	IndexWriter indexWriter = new IndexWriter(indexDir,
+		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
 	
 	indexDataCite(indexWriter, facetFields);
 
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexDIAMOND() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "diamond"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "diamond_tax"));
+
+	IndexWriter indexWriter = new IndexWriter(indexDir,
+		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+	
 	indexDIAMONDAssessments(indexWriter, facetFields);
 	indexDIAMONDTrainingMaterials(indexWriter, facetFields);
 
