@@ -76,16 +76,23 @@ public class FacetIndexer {
 	wintermuteConn = getConnection("wintermute.slis.uiowa.edu");
 	deepConn = getConnection("deep-thought.slis.uiowa.edu");
 
-	indexGitHub();
-	indexNLighten();
-	indexClinicalTrials();
-	indexNIHFOA();
-	indexDataMed();
-	indexDataCite();
-	indexDIAMOND();
+	switch (args[1]) {
+	case "-index":
+	    indexGitHub();
+	    indexNLighten();
+	    indexClinicalTrials();
+	    indexNIHFOA();
+	    indexDataMed();
+	    indexDataCite();
+	    indexDIAMOND();
+	    break;
+	case "-merge":
+	    mergeIndices(sites, pathPrefix + "cd2hsearch");
+	    break;
+	}
     }
     
-    public static void mergeIndices(String[] requests, String sitePathPrefix, String targetPath) throws SQLException, CorruptIndexException, IOException {
+    public static void mergeIndices(String[] requests, String targetPath) throws SQLException, CorruptIndexException, IOException {
 	IndexWriterConfig config = new IndexWriterConfig(org.apache.lucene.util.Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
 	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
 	config.setRAMBufferSizeMB(500);
