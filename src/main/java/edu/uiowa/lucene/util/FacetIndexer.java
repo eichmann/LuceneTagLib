@@ -15,12 +15,14 @@ import java.util.Vector;
 
 import javax.servlet.jsp.JspTagException;
 
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.Syntax;
+import org.apache.jena.tdb.TDBFactory;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -59,7 +61,7 @@ public class FacetIndexer {
     
     static Hashtable<String, Vector<String>> gitHubCategoryCache = new Hashtable<String, Vector<String>>();
 
-	static protected String prefix = 
+    static protected String prefix = 
 		"PREFIX ld4l: <http://bib.ld4l.org/ontology/>"
 			+ "PREFIX ld4lcornell: <http://draft.ld4l.org/cornell/>"
 			+ "PREFIX madsrdf: <http://www.loc.gov/mads/rdf/v1#>"
@@ -70,6 +72,17 @@ public class FacetIndexer {
 			+ "PREFIX void: <http://rdfs.org/ns/void#>"
 			+ "PREFIX worldcat: <http://www.worldcat.org/oclc/>"
 			+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>";
+
+    static protected String eruditePrefix = 
+		  "PREFIX bdu-organization: <http://bigdatau.org/organization/>"
+		+ "PREFIX bdu-person: <http://bigdatau.org/person/>"
+		+ "PREFIX bdu-resource: <http://bigdatau.org/resource/>"
+		+ "PREFIX dseo: <http://bigdatau.org/dseo#>"
+		+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+		+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
+		+ "PREFIX schema: <https://schema.org/>"
+		+ "PREFIX xml: <http://www.w3.org/XML/1998/namespace>"
+		+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>";
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException, JspTagException {
         PropertyConfigurator.configure(args[0]);
@@ -85,6 +98,9 @@ public class FacetIndexer {
 	    indexDataMed();
 	    indexDataCite();
 	    indexDIAMOND();
+	    break;
+	case "erudite":
+	    indexErudite();
 	    break;
 	case "-merge":
 	    mergeIndices(sites, pathPrefix + "cd2hsearch");
@@ -157,6 +173,25 @@ public class FacetIndexer {
 	indexNLightenResource(indexWriter, facetFields, "http://schema.org/Course", "Course");
 	indexNLightenResource(indexWriter, facetFields, "http://vivoweb.org/ontology/core#CaseStudy", "Case Study");
 	indexNLightenResource(indexWriter, facetFields, "http://purl.org/n-lighten/NLN_0000041", "Resource Material");
+
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexErudite() throws IOException, JspTagException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "erudite"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "erudite_tax"));
+
+	IndexWriter indexWriter = new IndexWriter(indexDir,
+		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+	
+	indexEruditeUsers(indexWriter, facetFields);
 
 	taxoWriter.close();
 	indexWriter.close();
@@ -257,6 +292,46 @@ public class FacetIndexer {
 
 	taxoWriter.close();
 	indexWriter.close();
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexEruditeUsers(IndexWriter indexWriter, FacetFields facetFields) throws JspTagException, IOException {
+	int count = 0;
+	logger.info("indexing Erudite users...");
+
+	org.apache.jena.query.ResultSet rs = getLocalResultSet("/usr/local/CD2H/triple_stores/erudite", eruditePrefix
+		+ " SELECT ?s ?name where { "
+		+ "  ?s rdf:type schema:CreativeWork . "
+		+ "  ?s schema:name ?name . "
+//		+ "  OPTIONAL { ?s rdfs:label ?labelENG FILTER (langMatches(?labelENG,\"en\")) } "
+//		+ "  OPTIONAL { ?s rdfs:label ?label    FILTER (lang(?label) = \"\") } "
+//		+ "  OPTIONAL { ?s rdfs:label ?labelANY FILTER (lang(?labelANY) != \"\") } "
+//		+ "  BIND(COALESCE(?labelUS, ?labelENG, ?label, ?labelANY ) as ?lab) " + " } "
+		+ "}");
+	while (rs.hasNext()) {
+	    QuerySolution sol = rs.nextSolution();
+	    String subjectURI = sol.get("?s").toString();	    
+	    String name = sol.get("?name").toString();
+	    logger.info("uri: " + subjectURI + "\t" + name);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "ERuDite", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/ERuDite", '/'));
+//
+//	    theDocument.add(new Field("uri", "https://alaska.dev.eagle-i.net/institution/#inst?uri="+subjectURI, Field.Store.YES, Field.Index.NOT_ANALYZED));
+//	    if (label != null ) {
+//		theDocument.add(new Field("label", label, Field.Store.YES, Field.Index.ANALYZED));
+//		theDocument.add(new Field("content", label, Field.Store.NO, Field.Index.ANALYZED));
+//	    }
+//	    paths.add(new CategoryPath("Entity/Person/unknown", '/'));
+//
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	logger.info("\tusers indexed: " + count);
     }
     
     @SuppressWarnings("deprecation")
@@ -1070,6 +1145,13 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 	Query theClassQuery = QueryFactory.create(queryString, Syntax.syntaxARQ);
 	QueryExecution theClassExecution = QueryExecutionFactory.sparqlService("https://alaska.dev.eagle-i.net/sparqler/sparql", theClassQuery);
 	return theClassExecution.execSelect();
+    }
+
+    public static org.apache.jena.query.ResultSet getLocalResultSet(String tripleStore, String queryString) throws JspTagException {
+	Dataset dataset = TDBFactory.createDataset(tripleStore);
+	Query query = QueryFactory.create(queryString, Syntax.syntaxARQ);
+	QueryExecution qexec = QueryExecutionFactory.create(query, dataset);
+	return qexec.execSelect();
     }
 
 }
