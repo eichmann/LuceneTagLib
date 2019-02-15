@@ -102,6 +102,9 @@ public class FacetIndexer {
 	case "erudite":
 	    indexErudite();
 	    break;
+	case "sparc":
+	    indexSPARC();
+	    break;
 	case "-merge":
 	    mergeIndices(sites, pathPrefix + "cd2hsearch");
 	    break;
@@ -132,6 +135,26 @@ public class FacetIndexer {
 	logger.info("done");
     }
 
+    static void indexSPARC() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "sparc"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "sparc_tax"));
+
+	IndexWriter indexWriter = new IndexWriter(indexDir,
+		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+
+	indexSPARC(indexWriter, facetFields);
+	indexSPARCNoCPT(indexWriter, facetFields);
+
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
     static void indexGitHub() throws IOException, SQLException {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "github"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "github_tax"));
@@ -491,6 +514,87 @@ public class FacetIndexer {
 		theDocument.add(new Field("content", bio, Field.Store.NO, Field.Index.ANALYZED));
 	    }
 	    paths.add(new CategoryPath("Entity/Person/unknown", '/'));
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	stmt.close();
+	logger.info("\tusers indexed: " + count);
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexSPARC(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
+	int count = 0;
+	logger.info("indexing SPARC services...");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select category,subcategory,label,code,service.id,service.name,description,organization_id,type,orgs.name from cpt_local.mapping,sparc_musc.service,sparc_musc.orgs where mapping.code=service.cpt_code and organization_id=orgs.id");
+	ResultSet rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String category = rs.getString(1);
+	    String subcategory = rs.getString(2);
+	    String label = rs.getString(3);
+	    String code = rs.getString(4);
+	    int id = rs.getInt(5);
+	    String name = rs.getString(6);
+	    String description = rs.getString(7);
+	    int organization_id = rs.getInt(8);
+	    String type = rs.getString(9);
+	    String org_name = rs.getString(10);
+	    
+	    logger.info("id: " + id + "\tname: " + name);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "SPARC", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/SPARC/MUSC/"+type+"/"+org_name, '/'));
+	    logger.info("\tSource/SPARC/MUSC/"+type+"/"+org_name);
+	    theDocument.add(new Field("url", ""+id, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("label", name, Field.Store.YES, Field.Index.ANALYZED));
+	    theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
+	    if (description != null) {
+		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    paths.add(new CategoryPath("Entity/service", '/'));
+	    paths.add(new CategoryPath("CPT/"+category+"/"+subcategory+"/"+label, '/'));
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	    count++;
+	}
+	stmt.close();
+	logger.info("\tusers indexed: " + count);
+    }
+    
+    @SuppressWarnings("deprecation")
+    static void indexSPARCNoCPT(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
+	int count = 0;
+	logger.info("indexing SPARC services...");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select service.id,service.name,description,organization_id,type,orgs.name from sparc_musc.service,sparc_musc.orgs where (cpt_code is null or cpt_code='') and organization_id=orgs.id");
+	ResultSet rs = stmt.executeQuery();
+	while (rs.next()) {
+	    int id = rs.getInt(1);
+	    String name = rs.getString(2);
+	    String description = rs.getString(3);
+	    int organization_id = rs.getInt(4);
+	    String type = rs.getString(5);
+	    String org_name = rs.getString(6);
+	    
+	    logger.info("id: " + id + "\tname: " + name);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+	    
+	    theDocument.add(new Field("source", "SPARC", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    paths.add(new CategoryPath("Source/SPARC/MUSC/"+type+"/"+org_name, '/'));
+	    logger.info("\tSource/SPARC/MUSC/"+type+"/"+org_name);
+	    theDocument.add(new Field("url", ""+id, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("label", name, Field.Store.YES, Field.Index.ANALYZED));
+	    theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
+	    if (description != null) {
+		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    paths.add(new CategoryPath("Entity/service", '/'));
 
 	    facetFields.addFields(theDocument, paths);
 	    indexWriter.addDocument(theDocument);
