@@ -1280,7 +1280,7 @@ static void indexREDCap(IndexWriter indexWriter, FacetFields facetFields) throws
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
 
 	    theDocument.add(new Field("source", "REDCap Library", Field.Store.YES, Field.Index.NOT_ANALYZED));
-	    theDocument.add(new Field("uri", "https://diamondportal.org/trainings/"+ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "REDCap/instrument.jsp?id="+ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
 
 	    if (title == null) {
