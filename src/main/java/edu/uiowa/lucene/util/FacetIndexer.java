@@ -56,6 +56,8 @@ public class FacetIndexer {
 	    			pathPrefix + "datamed",
 	    			pathPrefix + "datacite",
 	    			pathPrefix + "diamond",
+	    			pathPrefix + "redcap",
+	    			pathPrefix + "erudite",
 	    			"/usr/local/RAID/CTSAsearch/lucene/ctsasearch"
 	    			};
     
@@ -98,12 +100,17 @@ public class FacetIndexer {
 	    indexDataMed();
 	    indexDataCite();
 	    indexDIAMOND();
+	    indexREDCap();
+	    indexErudite();
 	    break;
 	case "erudite":
 	    indexErudite();
 	    break;
 	case "sparc":
 	    indexSPARC();
+	    break;
+	case "redcap":
+	    indexREDCap();
 	    break;
 	case "-merge":
 	    mergeIndices(sites, pathPrefix + "cd2hsearch");
@@ -312,6 +319,25 @@ public class FacetIndexer {
 	
 	indexDIAMONDAssessments(indexWriter, facetFields);
 	indexDIAMONDTrainingMaterials(indexWriter, facetFields);
+
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexREDCap() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "redcap"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "redcap_tax"));
+
+	IndexWriter indexWriter = new IndexWriter(indexDir,
+		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+	
+	indexREDCap(indexWriter, facetFields);
 
 	taxoWriter.close();
 	indexWriter.close();
@@ -1229,6 +1255,56 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 	}
 	stmt.close();
 	logger.info("\ttraining materials indexed: " + count);
+}
+
+@SuppressWarnings("deprecation")
+static void indexREDCap(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+	int count = 0;
+	logger.info("indexing REDCap instruments...");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select id,instrument_title,date_added,download_count,description,acknowledgement,terms_of_use from redcap.library_instrument");
+	ResultSet rs = stmt.executeQuery();
+
+	while (rs.next()) {
+	    count++;
+	    int ID = rs.getInt(1);
+	    String title = rs.getString(2);
+	    String date_added = rs.getString(3);
+	    String downloadCount = rs.getString(4);
+	    String description = rs.getString(5);
+	    String ackonwledgement = rs.getString(6);
+	    String termsOfUse = rs.getString(7);
+
+	    logger.debug("instrument: " + ID + "\t" + title);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+
+	    theDocument.add(new Field("source", "REDCap Library", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://diamondportal.org/trainings/"+ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+	    if (title == null) {
+		theDocument.add(new Field("label", "REDCap Library "+ID, Field.Store.YES, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));		
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+		
+	    if (description != null)
+		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
+	    if (ackonwledgement != null)
+		theDocument.add(new Field("content", ackonwledgement, Field.Store.NO, Field.Index.ANALYZED));
+	    if (termsOfUse != null)
+		theDocument.add(new Field("content", termsOfUse, Field.Store.NO, Field.Index.ANALYZED));
+
+	    paths.add(new CategoryPath("Source/REDCap Library", '/'));
+	    paths.add(new CategoryPath("Entity/Data Collection Instrument", '/'));
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	}
+	stmt.close();
+	logger.info("\tinstruments indexed: " + count);
 }
 
     public static Connection getConnection(String host) throws SQLException, ClassNotFoundException {
