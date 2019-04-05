@@ -35,6 +35,8 @@ src/main/java/edu/uiowa/lucene/conceptSearch/conceptParse.cup -text
 src/main/java/edu/uiowa/lucene/conceptSearch/conceptParse.lex -text
 src/main/java/edu/uiowa/lucene/conceptSearch/conceptParseFlex.java -text
 src/main/java/edu/uiowa/lucene/util/FacetIndexer.java -text
+src/main/java/edu/uiowa/lucene/util/LocalProperties.java -text
+src/main/java/edu/uiowa/lucene/util/PropertyLoader.java -text
 src/main/java/edu/uiowa/lucene/util/SimpleFacetsExample.java -text
 src/main/resources/META-INF/taglib.tld -text svneol=unset#text/xml
 src/main/resources/META-INF/taglib.tld.off -text

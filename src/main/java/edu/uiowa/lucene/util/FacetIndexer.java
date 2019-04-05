@@ -45,6 +45,7 @@ public class FacetIndexer {
     static Logger logger = Logger.getLogger(FacetIndexer.class);
     static private Directory indexDir = null;
     static private Directory taxoDir = null;
+    LocalProperties prop_file = null;
     static Connection wintermuteConn = null;
     static Connection deepConn = null;
     static String pathPrefix = "/usr/local/CD2H/lucene/";
@@ -1308,10 +1309,11 @@ static void indexREDCap(IndexWriter indexWriter, FacetFields facetFields) throws
 }
 
     public static Connection getConnection(String host) throws SQLException, ClassNotFoundException {
+	LocalProperties prop_file = PropertyLoader.loadProperties("lucene");
 	Class.forName("org.postgresql.Driver");
 	Properties props = new Properties();
-	props.setProperty("user", "eichmann");
-	props.setProperty("password", "translational");
+	props.setProperty("user", prop_file.getProperty("jdbc.user"));
+	props.setProperty("password", prop_file.getProperty("jdbc.password"));
 //	if (use_ssl.equals("true")) {
 //	    props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
 //	    props.setProperty("ssl", "true");
