@@ -610,14 +610,14 @@ public class FacetIndexer {
 	    
 	    theDocument.add(new Field("source", "SPARC", Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    paths.add(new CategoryPath("Source/SPARC/MUSC/"+type+"/"+org_name, '/'));
-	    logger.info("\tSource/SPARC/MUSC/"+type+"/"+org_name);
-	    theDocument.add(new Field("url", link, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    logger.debug("\tSource/SPARC/MUSC/"+type+"/"+org_name);
+	    theDocument.add(new Field("uri", link, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    theDocument.add(new Field("label", name, Field.Store.YES, Field.Index.ANALYZED));
 	    theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
 	    if (description != null) {
 		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
 	    }
-	    paths.add(new CategoryPath("Entity/service", '/'));
+	    paths.add(new CategoryPath("Entity/Service", '/'));
 	    paths.add(new CategoryPath("CPT/"+category+"/"+subcategory+"/"+label, '/'));
 
 	    facetFields.addFields(theDocument, paths);
@@ -650,14 +650,14 @@ public class FacetIndexer {
 	    
 	    theDocument.add(new Field("source", "SPARC", Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    paths.add(new CategoryPath("Source/SPARC/MUSC/"+type+"/"+org_name, '/'));
-	    logger.info("\tSource/SPARC/MUSC/"+type+"/"+org_name);
-	    theDocument.add(new Field("url", link, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    logger.debug("\tSource/SPARC/MUSC/"+type+"/"+org_name);
+	    theDocument.add(new Field("uri", link, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    theDocument.add(new Field("label", name, Field.Store.YES, Field.Index.ANALYZED));
 	    theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
 	    if (description != null) {
 		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
 	    }
-	    paths.add(new CategoryPath("Entity/service", '/'));
+	    paths.add(new CategoryPath("Entity/Service", '/'));
 
 	    facetFields.addFields(theDocument, paths);
 	    indexWriter.addDocument(theDocument);
