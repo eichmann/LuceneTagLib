@@ -43,8 +43,6 @@ import org.apache.lucene.util.Version;
 
 public class FacetIndexer {
     static Logger logger = Logger.getLogger(FacetIndexer.class);
-    static private Directory indexDir = null;
-    static private Directory taxoDir = null;
     LocalProperties prop_file = null;
     static Connection wintermuteConn = null;
     static Connection deepConn = null;
@@ -59,6 +57,8 @@ public class FacetIndexer {
 	    			pathPrefix + "diamond",
 	    			pathPrefix + "redcap",
 	    			pathPrefix + "erudite",
+	    			pathPrefix + "sparc",
+	    			pathPrefix + "clic",
 	    			"/usr/local/RAID/CTSAsearch/lucene/ctsasearch"
 	    			};
     
@@ -103,6 +103,7 @@ public class FacetIndexer {
 	    indexDIAMOND();
 	    indexREDCap();
 	    indexErudite();
+	    indexSPARC();
 	    break;
 	case "erudite":
 	    indexErudite();
@@ -112,6 +113,9 @@ public class FacetIndexer {
 	    break;
 	case "redcap":
 	    indexREDCap();
+	    break;
+	case "clic":
+	    indexCLIC();
 	    break;
 	case "-merge":
 	    mergeIndices(sites, pathPrefix + "cd2hsearch");
@@ -147,8 +151,9 @@ public class FacetIndexer {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "sparc"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "sparc_tax"));
 
-	IndexWriter indexWriter = new IndexWriter(indexDir,
-		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
 
 	// Writes facet ords to a separate directory from the main index
 	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
@@ -163,12 +168,33 @@ public class FacetIndexer {
 	indexWriter.close();
     }
     
+    static void indexCLIC() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "clic"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "clic_tax"));
+
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+	
+	indexCLICTrainingMaterials(indexWriter, facetFields);
+
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
     static void indexGitHub() throws IOException, SQLException {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "github"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "github_tax"));
 
-	IndexWriter indexWriter = new IndexWriter(indexDir,
-		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
 
 	// Writes facet ords to a separate directory from the main index
 	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
@@ -189,8 +215,9 @@ public class FacetIndexer {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "nlighten"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "nlighten_tax"));
 
-	IndexWriter indexWriter = new IndexWriter(indexDir,
-		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
 
 	// Writes facet ords to a separate directory from the main index
 	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
@@ -213,8 +240,9 @@ public class FacetIndexer {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "erudite"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "erudite_tax"));
 
-	IndexWriter indexWriter = new IndexWriter(indexDir,
-		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
 
 	// Writes facet ords to a separate directory from the main index
 	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
@@ -232,8 +260,9 @@ public class FacetIndexer {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "clinical_trials"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "clinical_trials_tax"));
 
-	IndexWriter indexWriter = new IndexWriter(indexDir,
-		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
 
 	// Writes facet ords to a separate directory from the main index
 	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
@@ -252,8 +281,9 @@ public class FacetIndexer {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "nih_foa"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "nih_foa_tax"));
 
-	IndexWriter indexWriter = new IndexWriter(indexDir,
-		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
 
 	// Writes facet ords to a separate directory from the main index
 	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
@@ -271,8 +301,9 @@ public class FacetIndexer {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "datamed"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "datamed_tax"));
 
-	IndexWriter indexWriter = new IndexWriter(indexDir,
-		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
 
 	// Writes facet ords to a separate directory from the main index
 	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
@@ -290,8 +321,9 @@ public class FacetIndexer {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "datacite"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "datacite_tax"));
 
-	IndexWriter indexWriter = new IndexWriter(indexDir,
-		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
 
 	// Writes facet ords to a separate directory from the main index
 	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
@@ -309,8 +341,9 @@ public class FacetIndexer {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "diamond"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "diamond_tax"));
 
-	IndexWriter indexWriter = new IndexWriter(indexDir,
-		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
 
 	// Writes facet ords to a separate directory from the main index
 	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
@@ -329,8 +362,9 @@ public class FacetIndexer {
 	Directory indexDir = FSDirectory.open(new File(pathPrefix + "redcap"));
 	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "redcap_tax"));
 
-	IndexWriter indexWriter = new IndexWriter(indexDir,
-		new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43)));
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
 
 	// Writes facet ords to a separate directory from the main index
 	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
@@ -554,7 +588,7 @@ public class FacetIndexer {
     static void indexSPARC(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing SPARC services...");
-	PreparedStatement stmt = wintermuteConn.prepareStatement("select category,subcategory,label,code,service.id,service.name,description,organization_id,type,orgs.name from cpt_local.mapping,sparc_musc.service,sparc_musc.orgs where mapping.code=service.cpt_code and organization_id=orgs.id");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select category,subcategory,label,code,service.id,service.name,description,organization_id,type,orgs.name,direct_link from cpt_local.mapping,sparc_musc.service,sparc_musc.orgs where mapping.code=service.cpt_code and organization_id=orgs.id");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String category = rs.getString(1);
@@ -567,8 +601,9 @@ public class FacetIndexer {
 	    int organization_id = rs.getInt(8);
 	    String type = rs.getString(9);
 	    String org_name = rs.getString(10);
+	    String link = rs.getString(11);
 	    
-	    logger.info("id: " + id + "\tname: " + name);
+	    logger.debug("id: " + id + "\tname: " + name);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -576,7 +611,7 @@ public class FacetIndexer {
 	    theDocument.add(new Field("source", "SPARC", Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    paths.add(new CategoryPath("Source/SPARC/MUSC/"+type+"/"+org_name, '/'));
 	    logger.info("\tSource/SPARC/MUSC/"+type+"/"+org_name);
-	    theDocument.add(new Field("url", ""+id, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("url", link, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    theDocument.add(new Field("label", name, Field.Store.YES, Field.Index.ANALYZED));
 	    theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
 	    if (description != null) {
@@ -590,14 +625,14 @@ public class FacetIndexer {
 	    count++;
 	}
 	stmt.close();
-	logger.info("\tusers indexed: " + count);
+	logger.info("\tCPT services indexed: " + count);
     }
     
     @SuppressWarnings("deprecation")
     static void indexSPARCNoCPT(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing SPARC services...");
-	PreparedStatement stmt = wintermuteConn.prepareStatement("select service.id,service.name,description,organization_id,type,orgs.name from sparc_musc.service,sparc_musc.orgs where (cpt_code is null or cpt_code='') and organization_id=orgs.id");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select service.id,service.name,description,organization_id,type,orgs.name,direct_link from sparc_musc.service,sparc_musc.orgs where (cpt_code is null or cpt_code='') and organization_id=orgs.id");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    int id = rs.getInt(1);
@@ -606,8 +641,9 @@ public class FacetIndexer {
 	    int organization_id = rs.getInt(4);
 	    String type = rs.getString(5);
 	    String org_name = rs.getString(6);
+	    String link = rs.getString(7);
 	    
-	    logger.info("id: " + id + "\tname: " + name);
+	    logger.debug("id: " + id + "\tname: " + name);
 
 	    Document theDocument = new Document();
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
@@ -615,7 +651,7 @@ public class FacetIndexer {
 	    theDocument.add(new Field("source", "SPARC", Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    paths.add(new CategoryPath("Source/SPARC/MUSC/"+type+"/"+org_name, '/'));
 	    logger.info("\tSource/SPARC/MUSC/"+type+"/"+org_name);
-	    theDocument.add(new Field("url", ""+id, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("url", link, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    theDocument.add(new Field("label", name, Field.Store.YES, Field.Index.ANALYZED));
 	    theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.ANALYZED));
 	    if (description != null) {
@@ -628,7 +664,7 @@ public class FacetIndexer {
 	    count++;
 	}
 	stmt.close();
-	logger.info("\tusers indexed: " + count);
+	logger.info("\tnon-CPT services indexed: " + count);
     }
     
     @SuppressWarnings("deprecation")
@@ -1063,7 +1099,8 @@ public class FacetIndexer {
  * description
  * subtype - entity subtype - 335 values
  * resource_type_id - alternative entity subtype - 15 values
-*/    @SuppressWarnings("deprecation")
+*/   
+    @SuppressWarnings("deprecation")
     static void indexDataCite(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing DataCite datasets...");
@@ -1119,8 +1156,8 @@ public class FacetIndexer {
 	logger.info("\tdatasets indexed: " + count);
     }
 
-@SuppressWarnings("deprecation")
-static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+    @SuppressWarnings("deprecation")
+    static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing DIAMOND assessments...");
 	PreparedStatement stmt = wintermuteConn.prepareStatement("select id,title,assessment_methods,subject_area,bp_categories,learning_level from diamond.assessment");
@@ -1141,16 +1178,16 @@ static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFi
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
 
 	    theDocument.add(new Field("source", "DIAMOND", Field.Store.YES, Field.Index.NOT_ANALYZED));
-	    theDocument.add(new Field("uri", "https://diamondportal.org/assessments/"+ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://diamondportal.org/assessments/" + ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
 
 	    if (title == null) {
-		theDocument.add(new Field("label", "DIAMOND "+ID, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("label", "DIAMOND " + ID, Field.Store.YES, Field.Index.ANALYZED));
 	    } else {
-		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));		
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
 	    }
-		
+
 	    if (assessment_methods != null)
 		theDocument.add(new Field("content", assessment_methods, Field.Store.NO, Field.Index.ANALYZED));
 	    if (subject_area != null)
@@ -1162,16 +1199,16 @@ static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFi
 
 	    paths.add(new CategoryPath("Source/DIAMOND", '/'));
 	    paths.add(new CategoryPath("Entity/Educational Resource/Assessment", '/'));
-	    paths.add(new CategoryPath("Learning Level/"+learning_level, '/'));
+	    paths.add(new CategoryPath("Learning Level/" + learning_level, '/'));
 	    for (String assessment : assessment_methods.split(",")) {
-		paths.add(new CategoryPath("Assessment Method/"+assessment.trim(), '/'));
+		paths.add(new CategoryPath("Assessment Method/" + assessment.trim(), '/'));
 	    }
-	    
+
 	    PreparedStatement domainStmt = wintermuteConn.prepareStatement("select domain from diamond.competency_domain where type='assessments' and id=?");
 	    domainStmt.setInt(1, ID);
 	    ResultSet domainRS = domainStmt.executeQuery();
 	    while (domainRS.next()) {
-		paths.add(new CategoryPath("Competency Domain/"+domainRS.getString(1), '/'));
+		paths.add(new CategoryPath("Competency Domain/" + domainRS.getString(1), '/'));
 	    }
 
 	    facetFields.addFields(theDocument, paths);
@@ -1179,10 +1216,10 @@ static void indexDIAMONDAssessments(IndexWriter indexWriter, FacetFields facetFi
 	}
 	stmt.close();
 	logger.info("\tassessments indexed: " + count);
-}
+    }
 
-@SuppressWarnings("deprecation")
-static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+    @SuppressWarnings("deprecation")
+    static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing DIAMOND training materials...");
 	PreparedStatement stmt = wintermuteConn.prepareStatement("select id,title,abstract,keywords,subject_area,learning_objectives,delivery_method,target_learners,learning_level from diamond.training_material");
@@ -1206,16 +1243,16 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
 
 	    theDocument.add(new Field("source", "DIAMOND", Field.Store.YES, Field.Index.NOT_ANALYZED));
-	    theDocument.add(new Field("uri", "https://diamondportal.org/trainings/"+ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://diamondportal.org/trainings/" + ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
 
 	    if (title == null) {
-		theDocument.add(new Field("label", "DIAMOND "+ID, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("label", "DIAMOND " + ID, Field.Store.YES, Field.Index.ANALYZED));
 	    } else {
-		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));		
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
 	    }
-		
+
 	    if (abstr != null)
 		theDocument.add(new Field("content", abstr, Field.Store.NO, Field.Index.ANALYZED));
 	    if (keywords != null)
@@ -1233,22 +1270,22 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 
 	    paths.add(new CategoryPath("Source/DIAMOND", '/'));
 	    paths.add(new CategoryPath("Entity/Educational Resource/Training Material", '/'));
-	    paths.add(new CategoryPath("Delivery Method/"+delivery_method, '/'));
-	    paths.add(new CategoryPath("Learning Level/"+learning_level, '/'));
+	    paths.add(new CategoryPath("Delivery Method/" + delivery_method, '/'));
+	    paths.add(new CategoryPath("Learning Level/" + learning_level, '/'));
 	    if (keywords != null)
 		for (String keyword : keywords.split(",")) {
-		    paths.add(new CategoryPath("Keyword/"+keyword.trim(), '/'));
+		    paths.add(new CategoryPath("Keyword/" + keyword.trim(), '/'));
 		}
 	    if (target_learners != null)
 		for (String learner : target_learners.split(";")) {
-		    paths.add(new CategoryPath("Entity/Person/"+learner.trim(), '/'));
+		    paths.add(new CategoryPath("Entity/Person/" + learner.trim(), '/'));
 		}
-	    
+
 	    PreparedStatement domainStmt = wintermuteConn.prepareStatement("select domain from diamond.competency_domain where type='trainings' and id=?");
 	    domainStmt.setInt(1, ID);
 	    ResultSet domainRS = domainStmt.executeQuery();
 	    while (domainRS.next()) {
-		paths.add(new CategoryPath("Competency Domain/"+domainRS.getString(1), '/'));
+		paths.add(new CategoryPath("Competency Domain/" + domainRS.getString(1), '/'));
 	    }
 
 	    facetFields.addFields(theDocument, paths);
@@ -1256,10 +1293,90 @@ static void indexDIAMONDTrainingMaterials(IndexWriter indexWriter, FacetFields f
 	}
 	stmt.close();
 	logger.info("\ttraining materials indexed: " + count);
-}
+    }
 
-@SuppressWarnings("deprecation")
-static void indexREDCap(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+    @SuppressWarnings("deprecation")
+    static void indexCLICTrainingMaterials(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+	int count = 0;
+	logger.info("indexing CLIC training materials...");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select id,url,title,description,objective,institution,method,frequency from clic.resource");
+	ResultSet rs = stmt.executeQuery();
+
+	while (rs.next()) {
+	    count++;
+	    int ID = rs.getInt(1);
+	    String url = rs.getString(2);
+	    String title = rs.getString(3);
+	    String description = rs.getString(4);
+	    String objective = rs.getString(5);
+	    String institution = rs.getString(6);
+	    String method = rs.getString(7);
+	    String frequency = rs.getString(8);
+
+	    logger.debug("training material: " + ID + "\t" + title);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+
+	    theDocument.add(new Field("source", "CLIC", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", url, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+	    if (title == null) {
+		theDocument.add(new Field("label", "CLIC " + ID, Field.Store.YES, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+
+	    if (description != null)
+		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
+	    if (objective != null)
+		theDocument.add(new Field("content", objective, Field.Store.NO, Field.Index.ANALYZED));
+	    if (institution != null)
+		theDocument.add(new Field("content", institution, Field.Store.NO, Field.Index.ANALYZED));
+	    if (method != null)
+		theDocument.add(new Field("content", method, Field.Store.NO, Field.Index.ANALYZED));
+	    if (frequency != null)
+		theDocument.add(new Field("content", frequency, Field.Store.NO, Field.Index.ANALYZED));
+
+	    paths.add(new CategoryPath("Source/CLIC", '/'));
+	    paths.add(new CategoryPath("Entity/Educational Resource/Training Material", '/'));
+	    paths.add(new CategoryPath("Delivery Method/" + method, '/'));
+
+	    PreparedStatement domainStmt = wintermuteConn.prepareStatement("select competency from clic.competency where id=?");
+	    domainStmt.setInt(1, ID);
+	    ResultSet domainRS = domainStmt.executeQuery();
+	    while (domainRS.next()) {
+		paths.add(new CategoryPath("Competency Domain/" + domainRS.getString(1), '/'));
+	    }
+	    domainStmt.close();
+
+	    PreparedStatement tagStmt = wintermuteConn.prepareStatement("select tag from clic.tag where id=?");
+	    tagStmt.setInt(1, ID);
+	    ResultSet tagRS = tagStmt.executeQuery();
+	    while (tagRS.next()) {
+		paths.add(new CategoryPath("Keyword/" + tagRS.getString(1), '/'));
+	    }
+	    tagStmt.close();
+
+	    PreparedStatement targetStmt = wintermuteConn.prepareStatement("select target from clic.target where id=?");
+	    targetStmt.setInt(1, ID);
+	    ResultSet targetRS = targetStmt.executeQuery();
+	    while (targetRS.next()) {
+		paths.add(new CategoryPath("Entity/Person/" + targetRS.getString(1), '/'));
+	    }
+	    targetStmt.close();
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	}
+	stmt.close();
+	logger.info("\ttraining materials indexed: " + count);
+    }
+
+    @SuppressWarnings("deprecation")
+    static void indexREDCap(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing REDCap instruments...");
 	PreparedStatement stmt = wintermuteConn.prepareStatement("select id,instrument_title,date_added,download_count,description,acknowledgement,terms_of_use from redcap.library_instrument");
@@ -1281,16 +1398,16 @@ static void indexREDCap(IndexWriter indexWriter, FacetFields facetFields) throws
 	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
 
 	    theDocument.add(new Field("source", "REDCap Library", Field.Store.YES, Field.Index.NOT_ANALYZED));
-	    theDocument.add(new Field("uri", "REDCap/instrument.jsp?id="+ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "REDCap/instrument.jsp?id=" + ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
 	    theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
 
 	    if (title == null) {
-		theDocument.add(new Field("label", "REDCap Library "+ID, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("label", "REDCap Library " + ID, Field.Store.YES, Field.Index.ANALYZED));
 	    } else {
-		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));		
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));
 		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
 	    }
-		
+
 	    if (description != null)
 		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
 	    if (ackonwledgement != null)
@@ -1306,7 +1423,7 @@ static void indexREDCap(IndexWriter indexWriter, FacetFields facetFields) throws
 	}
 	stmt.close();
 	logger.info("\tinstruments indexed: " + count);
-}
+    }
 
     public static Connection getConnection(String host) throws SQLException, ClassNotFoundException {
 	LocalProperties prop_file = PropertyLoader.loadProperties("lucene");
@@ -1318,7 +1435,7 @@ static void indexREDCap(IndexWriter indexWriter, FacetFields facetFields) throws
 //	    props.setProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory");
 //	    props.setProperty("ssl", "true");
 //	}
-	Connection conn = DriverManager.getConnection("jdbc:postgresql://"+host+"/loki", props);
+	Connection conn = DriverManager.getConnection(prop_file.getProperty("jdbc.url"), props);
 	conn.setAutoCommit(false);
 	return conn;
     }
