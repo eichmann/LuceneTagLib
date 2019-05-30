@@ -12,7 +12,9 @@ import javax.servlet.jsp.tagext.BodyTagSupport;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.facet.params.FacetSearchParams;
 import org.apache.lucene.facet.search.DrillDownQuery;
 import org.apache.lucene.facet.search.FacetResult;
@@ -54,6 +56,8 @@ public class LuceneSearch extends BodyTagSupport {
     public static SimpleFSLockFactory _LockFactory;
     private static final Log log = LogFactory.getLog(LuceneSearch.class);
     private static Pattern datePattern = Pattern.compile("([0-9]{4})-([0-9]{4})");
+    @SuppressWarnings("deprecation")
+    static CharArraySet stopWordSet = (new StopAnalyzer(org.apache.lucene.util.Version.LUCENE_30)).getStopwordSet();
 
     public static void main(String[] args) {
 	String originalQuery = "Robert Burton, Robert 1925-1984";
@@ -70,6 +74,10 @@ public class LuceneSearch extends BodyTagSupport {
 	StringBuffer buffer = new StringBuffer();
 
 	for (String term : originalQuery.split("[, ]+")) {
+	    if (stopWordSet.contains(term)) {
+		log.info("skipping stop word: " + term);
+		continue;
+	    }
 	    if (buffer.length() > 0)
 		buffer.append(" & ");
 	    if (useDateHack) {
