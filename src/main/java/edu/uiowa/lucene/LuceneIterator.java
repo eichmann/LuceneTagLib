@@ -25,7 +25,8 @@ public class LuceneIterator extends BodyTagSupport {
     LuceneSearch theSearch = null;
     TopDocs theHits = null;
     ScoreDoc theHit = null;
-    int hitFence = 0;
+    private int hitFence = 0;
+    private int hitOffset = 0;
     double thresholdFence = 0.0;
     Document theDocument = null;
     String label = null;
@@ -110,6 +111,18 @@ public class LuceneIterator extends BodyTagSupport {
 	this.label = null;
 	theHit = null;
 	hitFence = 0;
+    }
+
+    public int getHitRank() {
+        return hitOffset + hitFence;
+    }
+
+    public int getRankOffset() {
+        return hitOffset;
+    }
+
+    public void setRankOffset(int hitOffset) {
+        this.hitOffset = hitOffset;
     }
 
     public String getLabel() {

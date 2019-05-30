@@ -26,7 +26,7 @@ public class LuceneHitRank extends BodyTagSupport {
 	}
 
 	try {
-	    pageContext.getOut().print(theIterator.hitFence);
+	    pageContext.getOut().print(theIterator.getHitRank());
 	} catch (CorruptIndexException e) {
 	    log.error("Corruption Exception", e);
 	} catch (IOException e) {
