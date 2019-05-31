@@ -74,7 +74,7 @@ public class LuceneSearch extends BodyTagSupport {
 	StringBuffer buffer = new StringBuffer();
 
 	for (String term : originalQuery.split("[, ]+")) {
-	    if (stopWordSet.contains(term)) {
+	    if (stopWordSet.contains(term.toLowerCase())) {
 		log.info("skipping stop word: " + term);
 		continue;
 	    }
