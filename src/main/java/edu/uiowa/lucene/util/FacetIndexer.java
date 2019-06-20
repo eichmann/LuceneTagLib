@@ -618,7 +618,7 @@ public class FacetIndexer {
 		theDocument.add(new Field("content", description, Field.Store.NO, Field.Index.ANALYZED));
 	    }
 	    paths.add(new CategoryPath("Entity/Service", '/'));
-	    paths.add(new CategoryPath("CPT/"+category+"/"+subcategory+"/"+label, '/'));
+	    paths.add(new CategoryPath("CPT/"+subcategory+"/"+label, '/'));
 
 	    facetFields.addFields(theDocument, paths);
 	    indexWriter.addDocument(theDocument);
