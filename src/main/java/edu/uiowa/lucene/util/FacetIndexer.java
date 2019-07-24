@@ -59,6 +59,7 @@ public class FacetIndexer {
 	    			pathPrefix + "erudite",
 	    			pathPrefix + "sparc",
 	    			pathPrefix + "clic",
+	    			pathPrefix + "hub_services",
 	    			"/usr/local/RAID/CTSAsearch/lucene/ctsasearch"
 	    			};
     
@@ -89,8 +90,8 @@ public class FacetIndexer {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException, JspTagException {
         PropertyConfigurator.configure(args[0]);
-	wintermuteConn = getConnection("wintermute.slis.uiowa.edu");
-	deepConn = getConnection("deep-thought.slis.uiowa.edu");
+	wintermuteConn = getConnection("lucene");
+	deepConn = getConnection("lucene");
 
 	switch (args[1]) {
 	case "-index":
@@ -116,6 +117,9 @@ public class FacetIndexer {
 	    break;
 	case "clic":
 	    indexCLIC();
+	    break;
+	case "hub_services":
+	    indexHubServices();
 	    break;
 	case "-merge":
 	    mergeIndices(sites, pathPrefix + "cd2hsearch");
@@ -183,6 +187,26 @@ public class FacetIndexer {
 	FacetFields facetFields = new FacetFields(taxoWriter);
 	
 	indexCLICTrainingMaterials(indexWriter, facetFields);
+
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexHubServices() throws IOException, SQLException, ClassNotFoundException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "hub_services"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "hub_services_tax"));
+
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+	
+	indexHubServices(indexWriter, facetFields);
 
 	taxoWriter.close();
 	indexWriter.close();
@@ -1376,6 +1400,72 @@ public class FacetIndexer {
     }
 
     @SuppressWarnings("deprecation")
+    static void indexHubServices(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException, ClassNotFoundException {
+	int count = 0;
+	logger.info("indexing CTSA hub services...");
+	Connection inciteConn = getConnection("incite");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select distinct url,hub from ctsa_services.mapping,ctsa_services.facet where facet.fid=mapping.hub_fid");
+	ResultSet rs = stmt.executeQuery();
+
+	while (rs.next()) {
+	    count++;
+	    int ID = 0;
+	    String url = rs.getString(1);
+	    String hub = rs.getString(2);
+	    String title = null;
+
+	    PreparedStatement titleStmt = inciteConn.prepareStatement("select id,title from jsoup.document where url = ?");
+	    titleStmt.setString(1, url);
+	    ResultSet titleRS = titleStmt.executeQuery();
+	    while (titleRS.next()) {
+		ID = titleRS.getInt(1);
+		title = titleRS.getString(2);
+	    }
+	    logger.info("document: " + ID + ": " + url + "\t" + title);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+
+	    theDocument.add(new Field("source", "CTSA hub services", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", url, Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+	    if (title == null || title.length() == 0) {
+		theDocument.add(new Field("label", url, Field.Store.YES, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+
+	    paths.add(new CategoryPath("Source/CTSA hub services", '/'));
+	    paths.add(new CategoryPath("Entity/Web page", '/'));
+		paths.add(new CategoryPath("CTSA/" + hub, '/'));
+	    PreparedStatement facetStmt = wintermuteConn.prepareStatement("select distinct path,hub from ctsa_services.mapping,ctsa_services.facet where cd2h_fid = fid and url = ?");
+	    facetStmt.setString(1, url);
+	    ResultSet facetRS = facetStmt.executeQuery();
+	    while (facetRS.next()) {
+		logger.info("facet: " + "Service/" + facetRS.getString(1));
+		paths.add(new CategoryPath("Service/" + facetRS.getString(1), '/'));
+	    }
+	    facetStmt.close();
+
+	    PreparedStatement contentStmt = inciteConn.prepareStatement("select content from jsoup.segment where id=?");
+	    contentStmt.setInt(1, ID);
+	    ResultSet contentRS = contentStmt.executeQuery();
+	    while (contentRS.next()) {
+		String content = contentRS.getString(1);
+		logger.debug("\tcontent: " + content);
+		theDocument.add(new Field("content", content, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    contentStmt.close();
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	}
+	stmt.close();
+	logger.info("\thub services indexed: " + count);
+    }
+
+    @SuppressWarnings("deprecation")
     static void indexREDCap(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
 	int count = 0;
 	logger.info("indexing REDCap instruments...");
@@ -1425,8 +1515,8 @@ public class FacetIndexer {
 	logger.info("\tinstruments indexed: " + count);
     }
 
-    public static Connection getConnection(String host) throws SQLException, ClassNotFoundException {
-	LocalProperties prop_file = PropertyLoader.loadProperties("lucene");
+    public static Connection getConnection(String property_file) throws SQLException, ClassNotFoundException {
+	LocalProperties prop_file = PropertyLoader.loadProperties(property_file);
 	Class.forName("org.postgresql.Driver");
 	Properties props = new Properties();
 	props.setProperty("user", prop_file.getProperty("jdbc.user"));
