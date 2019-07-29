@@ -59,6 +59,8 @@ public class FacetIndexer {
 	    			pathPrefix + "erudite",
 	    			pathPrefix + "sparc",
 	    			pathPrefix + "clic",
+	    			pathPrefix + "medline",
+	    			pathPrefix + "reporter",
 	    			pathPrefix + "hub_services",
 	    			"/usr/local/RAID/CTSAsearch/lucene/ctsasearch"
 	    			};
@@ -105,6 +107,8 @@ public class FacetIndexer {
 	    indexREDCap();
 	    indexErudite();
 	    indexSPARC();
+	    indexMEDLINE();
+	    indexMEDLINE();
 	    break;
 	case "erudite":
 	    indexErudite();
@@ -117,6 +121,12 @@ public class FacetIndexer {
 	    break;
 	case "clic":
 	    indexCLIC();
+	    break;
+	case "medline":
+	    indexMEDLINE();
+	    break;
+	case "reporter":
+	    indexRePORTER();
 	    break;
 	case "hub_services":
 	    indexHubServices();
@@ -187,6 +197,46 @@ public class FacetIndexer {
 	FacetFields facetFields = new FacetFields(taxoWriter);
 	
 	indexCLICTrainingMaterials(indexWriter, facetFields);
+
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexMEDLINE() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "medline"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "medline_tax"));
+
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+	
+	indexMEDLINE(indexWriter, facetFields);
+
+	taxoWriter.close();
+	indexWriter.close();
+    }
+    
+    static void indexRePORTER() throws IOException, SQLException {
+	Directory indexDir = FSDirectory.open(new File(pathPrefix + "reporter"));
+	Directory taxoDir = FSDirectory.open(new File(pathPrefix + "reporter_tax"));
+
+	IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
+	config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+	IndexWriter indexWriter = new IndexWriter(indexDir, config);
+
+	// Writes facet ords to a separate directory from the main index
+	DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+
+	// Reused across documents, to add the necessary facet fields
+	FacetFields facetFields = new FacetFields(taxoWriter);
+	
+	indexRePORTER(indexWriter, facetFields);
 
 	taxoWriter.close();
 	indexWriter.close();
@@ -1397,6 +1447,205 @@ public class FacetIndexer {
 	}
 	stmt.close();
 	logger.info("\ttraining materials indexed: " + count);
+    }
+
+    @SuppressWarnings("deprecation")
+    static void indexMEDLINE(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+	int count = 0;
+	logger.info("indexing MEDLINE articles...");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select pmid,title from medline18.article");
+	ResultSet rs = stmt.executeQuery();
+
+	while (rs.next()) {
+	    count++;
+	    int pmid = rs.getInt(1);
+	    String title = rs.getString(2);
+
+	    if (count % 1000 == 0)
+		logger.info("article: " + pmid + "\t" + title);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+
+	    paths.add(new CategoryPath("Entity/Article", '/'));
+	    paths.add(new CategoryPath("Source/PubMed", '/'));
+	    
+	    theDocument.add(new Field("source", "PubMed", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://www.ncbi.nlm.nih.gov/pubmed/" + pmid, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("id", pmid + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+	    if (title == null) {
+		theDocument.add(new Field("label", "PubMed "+pmid, Field.Store.YES, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));		
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+	    
+	    indexMEDLINE(pmid, theDocument);
+		
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	}
+	stmt.close();
+	logger.info("\tdatasets indexed: " + count);
+    }
+
+    @SuppressWarnings("deprecation")
+    static void indexMEDLINE(int pmid, Document theDocument) throws SQLException {
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select abstract_text from medline18.abstr where pmid = ?");
+	stmt.setInt(1, pmid);
+	ResultSet rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String theAbstract = rs.getString(1);
+	    theDocument.add(new Field("content", theAbstract, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    logger.trace("\tabstract: " + theAbstract);
+	}
+	stmt.close();
+
+	stmt = wintermuteConn.prepareStatement("select last_name,fore_name,initials,suffix,collective_name,affiliation from medline18.author where pmid = ?");
+	stmt.setInt(1, pmid);
+	rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String last_name = rs.getString(1);
+	    String fore_name = rs.getString(1);
+	    String initials = rs.getString(1);
+	    String suffix = rs.getString(1);
+	    String collective_name = rs.getString(1);
+	    String affiliation = rs.getString(1);
+	    if (last_name != null)
+		theDocument.add(new Field("content", last_name, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    if (fore_name != null)
+		theDocument.add(new Field("content", fore_name, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    if (initials != null)
+		theDocument.add(new Field("content", initials, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    if (suffix != null)
+		theDocument.add(new Field("content", suffix, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    if (collective_name != null)
+		theDocument.add(new Field("content", collective_name, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    if (affiliation != null)
+		theDocument.add(new Field("content", affiliation, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    logger.trace("\tauthor: " + last_name + ", " + fore_name);
+	}
+	stmt.close();
+
+	stmt = wintermuteConn.prepareStatement("select keyword from medline18.keyword where pmid = ?");
+	stmt.setInt(1, pmid);
+	rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String keyword = rs.getString(1);
+	    theDocument.add(new Field("content", keyword, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    logger.trace("\tkeyword: " + keyword);
+	}
+	stmt.close();
+
+	stmt = wintermuteConn.prepareStatement("select descriptor_name from medline18.mesh_heading where pmid = ?");
+	stmt.setInt(1, pmid);
+	rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String descriptor = rs.getString(1);
+	    theDocument.add(new Field("content", descriptor, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    logger.trace("\tdescriptor: " + descriptor);
+	}
+	stmt.close();
+
+	stmt = wintermuteConn.prepareStatement("select registry_number,substance_name from medline18.chemical where pmid = ?");
+	stmt.setInt(1, pmid);
+	rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String registry = rs.getString(1);
+	    String substance = rs.getString(2);
+	    theDocument.add(new Field("content", registry, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("content", substance, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    logger.trace("\tregistry: " + registry + "\tsubstance: " + substance);
+	}
+	stmt.close();
+
+	stmt = wintermuteConn.prepareStatement("select symbol from medline18.gene_symbol where pmid = ?");
+	stmt.setInt(1, pmid);
+	rs = stmt.executeQuery();
+	while (rs.next()) {
+	    String gene = rs.getString(1);
+	    theDocument.add(new Field("content", gene, Field.Store.NO, Field.Index.NOT_ANALYZED));
+	    logger.trace("\tgene: " + gene);
+	}
+	stmt.close();
+
+    }
+
+    @SuppressWarnings("deprecation")
+    static void indexRePORTER(IndexWriter indexWriter, FacetFields facetFields) throws IOException, SQLException {
+	int count = 0;
+	logger.info("indexing RePORTER awards...");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select application_id,activity,administering_ic,full_project_num,fy,title from nih_exporter.project where support_year = 1");
+	ResultSet rs = stmt.executeQuery();
+
+	while (rs.next()) {
+	    count++;
+	    int ID = rs.getInt(1);
+	    String activity = rs.getString(2);
+	    String IC = rs.getString(3);
+	    String award = rs.getString(4);
+	    int fy = rs.getInt(5);
+	    String title = rs.getString(6);
+
+	    if (count % 1000 == 0)
+		logger.info("award: " + ID + "\t" + title);
+
+	    Document theDocument = new Document();
+	    List<CategoryPath> paths = new ArrayList<CategoryPath>();
+
+	    paths.add(new CategoryPath("Entity/Award/" + activity, '/'));
+	    paths.add(new CategoryPath("Source/RePORTER", '/'));
+	    paths.add(new CategoryPath("Site/NIH/" + IC, '/'));
+	    paths.add(new CategoryPath("Year/" + fy, '/'));
+	    
+	    theDocument.add(new Field("source", "RePORTER", Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("uri", "https://projectreporter.nih.gov/project_info_description.cfm?aid=" + ID, Field.Store.YES, Field.Index.NOT_ANALYZED));
+	    theDocument.add(new Field("id", ID + "", Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+	    if (title == null) {
+		theDocument.add(new Field("label", "RePORTER "+ID, Field.Store.YES, Field.Index.ANALYZED));
+	    } else {
+		theDocument.add(new Field("label", title, Field.Store.YES, Field.Index.ANALYZED));		
+		theDocument.add(new Field("content", title, Field.Store.NO, Field.Index.ANALYZED));
+	    }
+		
+	    PreparedStatement substmt = wintermuteConn.prepareStatement("select abstract_text from nih_exporter.project_abstract where application_id = ?");
+	    substmt.setInt(1, ID);
+	    ResultSet subrs = substmt.executeQuery();
+	    while (subrs.next()) {
+		String abstr = subrs.getString(1);
+		if (abstr != null)
+		    theDocument.add(new Field("content", abstr, Field.Store.NO, Field.Index.NOT_ANALYZED));
+		logger.trace("\tabstract: " + abstr);
+	    }
+	    substmt.close();
+
+	    substmt = wintermuteConn.prepareStatement("select term from nih_exporter.term where application_id = ?");
+	    substmt.setInt(1, ID);
+	    subrs = substmt.executeQuery();
+	    while (subrs.next()) {
+		String term = subrs.getString(1);
+		theDocument.add(new Field("content", term, Field.Store.NO, Field.Index.NOT_ANALYZED));
+		logger.trace("\tterm: " + term);
+	    }
+	    substmt.close();
+
+	    substmt = wintermuteConn.prepareStatement("select pi_name from nih_exporter.pi where application_id = ?");
+	    substmt.setInt(1, ID);
+	    subrs = substmt.executeQuery();
+	    while (subrs.next()) {
+		String name = subrs.getString(1);
+		theDocument.add(new Field("content", name, Field.Store.NO, Field.Index.NOT_ANALYZED));
+		logger.trace("\tpi: " + name);
+	    }
+	    substmt.close();
+
+	    facetFields.addFields(theDocument, paths);
+	    indexWriter.addDocument(theDocument);
+	}
+	stmt.close();
+	logger.info("\tdatasets indexed: " + count);
     }
 
     @SuppressWarnings("deprecation")
