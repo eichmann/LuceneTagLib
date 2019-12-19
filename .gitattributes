@@ -34,6 +34,7 @@ src/main/java/edu/uiowa/lucene/conceptSearch/ConceptParseSym.java -text
 src/main/java/edu/uiowa/lucene/conceptSearch/conceptParse.cup -text
 src/main/java/edu/uiowa/lucene/conceptSearch/conceptParse.lex -text
 src/main/java/edu/uiowa/lucene/conceptSearch/conceptParseFlex.java -text
+src/main/java/edu/uiowa/lucene/ld4lSearch/LD4LParser.java -text
 src/main/java/edu/uiowa/lucene/util/FacetIndexer.java -text
 src/main/java/edu/uiowa/lucene/util/LocalProperties.java -text
 src/main/java/edu/uiowa/lucene/util/PropertyLoader.java -text

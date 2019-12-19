@@ -34,6 +34,7 @@ import org.apache.lucene.util.Version;
 
 import edu.uiowa.lucene.booleanSearch.*;
 import edu.uiowa.lucene.conceptSearch.*;
+import edu.uiowa.lucene.ld4lSearch.LD4LParser;
 
 @SuppressWarnings("serial")
 
@@ -48,7 +49,6 @@ public class LuceneSearch extends BodyTagSupport {
     String queryString = null;
     IndexReader reader = null;
     IndexSearcher theSearcher = null;
-    boolean similarity = true;
     String queryParserName = null;
     boolean useConjunctionByDefault = false;
     boolean useDateHack = false;
@@ -118,12 +118,15 @@ public class LuceneSearch extends BodyTagSupport {
 		log.trace("facet collector: " + facetCollector);
 	    }
 
-	    if ("concept".equals(queryParserName)) {
+	    switch (queryParserName) {
+	    case "concept":
 		// TODO insert magic here to allow for selection of nomenclature
 		theQuery = (Query) (new ConceptParseCup(new conceptParseFlex(new StringReader(queryString)))).parse().value;
-	    } else if ("boolean".equals(queryParserName)) {
+		break;
+	    case "boolean":
 		theQuery = (Query) (new BooleanParseCup(new booleanParseFlex(new StringReader(queryString)))).parse().value;
-	    } else if (similarity) {
+		break;
+	    case "similarity":
 		MoreLikeThis mlt = new MoreLikeThis(reader);
 		mlt.setMinDocFreq(1);
 		mlt.setMinTermFreq(1);
@@ -131,10 +134,15 @@ public class LuceneSearch extends BodyTagSupport {
 		mlt.setFieldNames(new String[] { label });
 		mlt.setAnalyzer(new StandardAnalyzer(Version.LUCENE_43));
 		theQuery = mlt.like(new StringReader(queryString), "content");
-	    } else {
+		break;
+	    case "ld4l":
+		theQuery = LD4LParser.parse(queryString, label);
+		break;
+	    default:
 		org.apache.lucene.queryparser.classic.QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label,
 			new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
 		theQuery = theQueryParser.parse(queryString);
+		break;
 	    }
 
 	    log.info("actual query: " + theQuery);
@@ -190,7 +198,6 @@ public class LuceneSearch extends BodyTagSupport {
 	theSearcher = null;
 	lucenePath = null;
 	queryString = null;
-	similarity = true;
     }
 
     public String getLucenePath() {
@@ -215,14 +222,6 @@ public class LuceneSearch extends BodyTagSupport {
 
     public void setLabel(String label) {
 	this.label = label;
-    }
-
-    public boolean isSimilarity() {
-	return similarity;
-    }
-
-    public void setSimilarity(boolean similarity) {
-	this.similarity = similarity;
     }
 
     public String getQueryParserName() {
