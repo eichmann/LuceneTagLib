@@ -110,6 +110,9 @@ public class FacetIndexer {
 	    indexMEDLINE();
 	    indexMEDLINE();
 	    break;
+	case "clinical_trials":
+	    indexClinicalTrials();
+	    break;
 	case "erudite":
 	    indexErudite();
 	    break;
@@ -864,7 +867,7 @@ public class FacetIndexer {
     static void indexClinicalTrialOfficialContact(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing ClinicalTrials.gov official contacts...");
-	PreparedStatement stmt = wintermuteConn.prepareStatement("select last_name,role,affiliation,count(*) from clinical_trials.overall_official group by 1,2,3 order by 4 desc");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select overall_official_name,overall_official_role,overall_official_affiliation,count(*) from clinical_trials.overall_official group by 1,2,3 order by 4 desc");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String name = rs.getString(1);
@@ -920,7 +923,7 @@ public class FacetIndexer {
     static void indexClinicalTrials(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing ClinicalTrials.gov trials...");
-	PreparedStatement stmt = wintermuteConn.prepareStatement("select nct_id,brief_title,official_title,overall_status,phase,study_type,condition from clinical_trials.clinical_study");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select nct_id,brief_title,official_title,overall_status,phase,study_type,condition from clinical_trials.study");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String nctID = rs.getString(1);
