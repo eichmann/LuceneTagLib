@@ -923,14 +923,15 @@ public class FacetIndexer {
     static void indexClinicalTrials(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing ClinicalTrials.gov trials...");
-	PreparedStatement stmt = wintermuteConn.prepareStatement("select nct_id,brief_title,official_title,overall_status,study_type from clinical_trials.study");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select id,nct_id,brief_title,official_title,overall_status,study_type from clinical_trials.study");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
-	    String nctID = rs.getString(1);
-	    String briefTitle = rs.getString(2);
-	    String title = rs.getString(3);
-	    String status = rs.getString(4);
-	    String type = rs.getString(5);
+	    int ID = rs.getInt(1);
+	    String nctID = rs.getString(2);
+	    String briefTitle = rs.getString(3);
+	    String title = rs.getString(4);
+	    String status = rs.getString(5);
+	    String type = rs.getString(6);
 	    
 	    logger.debug("trial: " + nctID + "\t" + briefTitle);
 
@@ -960,14 +961,21 @@ public class FacetIndexer {
 		}
 	    }
 
-	    if (phase != null) {
+	    PreparedStatement substmt = wintermuteConn.prepareStatement("select phase from clinical_trials.phase where id = ?");
+	    substmt.setInt(1, ID);
+	    ResultSet subrs = substmt.executeQuery();
+	    while (subrs.next()) {
+		String phase = subrs.getString(1);
+		if (phase == null || phase.startsWith("Http"))
+		    continue;
 		theDocument.add(new Field("content", phase, Field.Store.NO, Field.Index.ANALYZED));
 		try {
-		    paths.add(new CategoryPath("Phase/"+phase, '/'));
+		    paths.add(new CategoryPath("Phase/" + phase, '/'));
 		} catch (Exception e) {
 		    logger.error("error adding phase facet", e);
 		}
 	    }
+	    substmt.close();
 
 	    if (type != null) {
 		theDocument.add(new Field("content", type, Field.Store.NO, Field.Index.ANALYZED));
@@ -978,14 +986,21 @@ public class FacetIndexer {
 		}
 	    }
 
-	    if (condition != null) {
+	    substmt = wintermuteConn.prepareStatement("select condition from clinical_trials.condition where id = ?");
+	    substmt.setInt(1, ID);
+	    subrs = substmt.executeQuery();
+	    while (subrs.next()) {
+		String condition = subrs.getString(1);
+		if (condition == null || condition.startsWith("Http"))
+		    continue;
 		theDocument.add(new Field("content", condition, Field.Store.NO, Field.Index.ANALYZED));
 		try {
-		    paths.add(new CategoryPath("Condition/"+condition, '/'));
+		    paths.add(new CategoryPath("Condition/" + condition, '/'));
 		} catch (Exception e) {
 		    logger.error("error adding condition facet", e);
 		}
 	    }
+	    substmt.close();
 
 	    facetFields.addFields(theDocument, paths);
 	    indexWriter.addDocument(theDocument);
@@ -1508,11 +1523,11 @@ public class FacetIndexer {
 	rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String last_name = rs.getString(1);
-	    String fore_name = rs.getString(1);
-	    String initials = rs.getString(1);
-	    String suffix = rs.getString(1);
-	    String collective_name = rs.getString(1);
-	    String affiliation = rs.getString(1);
+	    String fore_name = rs.getString(2);
+	    String initials = rs.getString(3);
+	    String suffix = rs.getString(4);
+	    String collective_name = rs.getString(5);
+	    String affiliation = rs.getString(6);
 	    if (last_name != null)
 		theDocument.add(new Field("content", last_name, Field.Store.NO, Field.Index.NOT_ANALYZED));
 	    if (fore_name != null)

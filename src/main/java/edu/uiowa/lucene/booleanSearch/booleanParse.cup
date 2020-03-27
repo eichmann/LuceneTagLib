@@ -40,24 +40,33 @@ Pat ::=
 								:}
 	| TokenList:p	{:	StringBuffer buffer = new StringBuffer();
 						for (String e : p) {
-							buffer.append(e + " ");
+							buffer.append(e.replaceAll("-"," ") + " ");
 						}
 						QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, "content", new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
 						Query theQuery = theQueryParser.parse(buffer.toString());            	
 						RESULT = theQuery;
 						BooleanParseCup.log.info("\ttoken string: " + buffer + "\tquery: " + RESULT);
 					:}
-	| Pat:leftPat AND_OP Pat:rightPat	{:	Query theQuery = new BooleanQuery();
-											((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.MUST);
-											((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.MUST);
-											RESULT = theQuery;
-											BooleanParseCup.log.info("\tand query: " + RESULT);
+	| Pat:leftPat AND_OP Pat:rightPat	{:	if (rightPat == null) {
+												RESULT = leftPat;
+											} else if (leftPat == null) {
+												RESULT = rightPat;
+											} else {
+												Query theQuery = new BooleanQuery();
+												((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.MUST);
+												((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.MUST);
+												RESULT = theQuery;
+												BooleanParseCup.log.info("\tand query: " + RESULT);
+											}
 										:}
-	| Pat:leftPat OR_OP Pat:rightPat	{:	Query theQuery = new BooleanQuery();
-											((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.SHOULD);
-											((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.SHOULD);
-											RESULT = theQuery;
-											BooleanParseCup.log.info("\tor query: " + RESULT);
+	| Pat:leftPat OR_OP Pat:rightPat	{:	if (rightPat != null) {
+												Query theQuery = new BooleanQuery();
+												((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.SHOULD);
+												((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.SHOULD);
+												RESULT = theQuery;
+												BooleanParseCup.log.info("\tor query: " + RESULT);
+											} else
+												RESULT = leftPat;
 										:}
 	| NOT_OP Pat:p	{:	Query theQuery = new BooleanQuery();
 						((BooleanQuery)theQuery).add(p, BooleanClause.Occur.MUST_NOT);
