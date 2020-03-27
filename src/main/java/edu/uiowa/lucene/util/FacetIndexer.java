@@ -923,16 +923,14 @@ public class FacetIndexer {
     static void indexClinicalTrials(IndexWriter indexWriter, FacetFields facetFields) throws SQLException, IOException {
 	int count = 0;
 	logger.info("indexing ClinicalTrials.gov trials...");
-	PreparedStatement stmt = wintermuteConn.prepareStatement("select nct_id,brief_title,official_title,overall_status,phase,study_type,condition from clinical_trials.study");
+	PreparedStatement stmt = wintermuteConn.prepareStatement("select nct_id,brief_title,official_title,overall_status,study_type from clinical_trials.study");
 	ResultSet rs = stmt.executeQuery();
 	while (rs.next()) {
 	    String nctID = rs.getString(1);
 	    String briefTitle = rs.getString(2);
 	    String title = rs.getString(3);
 	    String status = rs.getString(4);
-	    String phase = rs.getString(5);
-	    String type = rs.getString(6);
-	    String condition = rs.getString(7);
+	    String type = rs.getString(5);
 	    
 	    logger.debug("trial: " + nctID + "\t" + briefTitle);
 
