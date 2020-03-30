@@ -25,7 +25,7 @@ public class BiomedicalAnalyzer extends Analyzer {
     public static void main(String[] args) throws IOException {
         PropertyConfigurator.configure("/Users/eichmann/Documents/Components/log4j.info");
 	BiomedicalAnalyzer analyzer = new BiomedicalAnalyzer();
-	TokenStream stream = analyzer.tokenStream(null, new StringReader("Eventually Bringing a tests"));
+	TokenStream stream = analyzer.tokenStream(null, new StringReader("Guanosine 5'-O-[S-(3-bromo-2-oxopropyl)]thiophosphate: a new reactive purine nucleotide analog labeling Met-169 and Tyr-262 in bovine liver glutamate"));
 	CharTermAttribute cattr = stream.addAttribute(CharTermAttribute.class);
 	stream.reset();
 	while (stream.incrementToken()) {
@@ -36,7 +36,7 @@ public class BiomedicalAnalyzer extends Analyzer {
 	stream.close();
 	analyzer.close();
     }
-
+    
     @Override
     protected TokenStreamComponents createComponents(String arg0, Reader arg1) {
         BiomedicalTokenizer src = new BiomedicalTokenizer(arg1);

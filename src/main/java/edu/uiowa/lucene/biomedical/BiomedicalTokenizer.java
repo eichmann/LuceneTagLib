@@ -12,8 +12,6 @@ import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
-import edu.uiowa.lex.biomedicalLexerFlex;
-
 public class BiomedicalTokenizer extends Tokenizer {
     /** A private instance of the JFlex-constructed scanner */
     private biomedicalLexerFlex scanner;
@@ -92,7 +90,7 @@ public class BiomedicalTokenizer extends Tokenizer {
     }
 
     private void init() {
-      this.scanner = new StandardTokenizerImpl(input);
+      this.scanner = new biomedicalLexerFlex(input);
     }
 
     // this tokenizer generates three attributes:
@@ -122,9 +120,9 @@ public class BiomedicalTokenizer extends Tokenizer {
         if (scanner.yylength() <= maxTokenLength) {
           posIncrAtt.setPositionIncrement(skippedPositions+1);
           scanner.getText(termAtt);
-          final int start = scanner.yychar();
+          final int start = (int)scanner.yychar();
           offsetAtt.setOffset(correctOffset(start), correctOffset(start+termAtt.length()));
-          typeAtt.setType(StandardTokenizer.TOKEN_TYPES[tokenType]);
+          typeAtt.setType(TOKEN_TYPES[0]); // tokenType
           return true;
         } else
           // When we skip a too-long term, we still increment the
@@ -137,7 +135,7 @@ public class BiomedicalTokenizer extends Tokenizer {
     public final void end() throws IOException {
       super.end();
       // set final offset
-      int finalOffset = correctOffset(scanner.yychar() + scanner.yylength());
+      int finalOffset = correctOffset((int)scanner.yychar() + scanner.yylength());
       offsetAtt.setOffset(finalOffset, finalOffset);
       // adjust any skipped tokens
       posIncrAtt.setPositionIncrement(posIncrAtt.getPositionIncrement()+skippedPositions);
