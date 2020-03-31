@@ -32,6 +32,8 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.SimpleFSLockFactory;
 import org.apache.lucene.util.Version;
 
+import edu.uiowa.lucene.biomedical.BiomedicalParseCup;
+import edu.uiowa.lucene.biomedical.biomedicalParseFlex;
 import edu.uiowa.lucene.booleanSearch.*;
 import edu.uiowa.lucene.conceptSearch.*;
 import edu.uiowa.lucene.ld4lSearch.LD4LParser;
@@ -125,6 +127,10 @@ public class LuceneSearch extends BodyTagSupport {
 		break;
 	    case "boolean":
 		theQuery = (Query) (new BooleanParseCup(new booleanParseFlex(new StringReader(queryString)))).parse().value;
+		break;
+	    case "biomedical":
+		log.info("calling biomedical...");
+		theQuery = (Query) (new BiomedicalParseCup(new biomedicalParseFlex(new StringReader(queryString+" ")))).parse().value;
 		break;
 	    case "similarity":
 		MoreLikeThis mlt = new MoreLikeThis(reader);
