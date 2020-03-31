@@ -11,12 +11,8 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.core.StopFilter;
 import org.apache.lucene.analysis.en.PorterStemFilter;
-import org.apache.lucene.analysis.miscellaneous.CapitalizationFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.standard.StandardFilter;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
-import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.util.Version;
 
 public class BiomedicalAnalyzer extends Analyzer {
@@ -25,7 +21,7 @@ public class BiomedicalAnalyzer extends Analyzer {
     public static void main(String[] args) throws IOException {
         PropertyConfigurator.configure("/Users/eichmann/Documents/Components/log4j.info");
 	BiomedicalAnalyzer analyzer = new BiomedicalAnalyzer();
-	TokenStream stream = analyzer.tokenStream(null, new StringReader("Guanosine 5'-O-[S-(3-bromo-2-oxopropyl)]thiophosphate: a new reactive purine nucleotide analog labeling Met-169 and Tyr-262 in bovine liver glutamate"));
+	TokenStream stream = analyzer.tokenStream(null, new StringReader("Guanosine 5'-O-[S-(3-bromo-2-oxopropyl)]thiophosphate: a new reactive purine nucleotide analog labeling Met-169 and Tyr-262 in bovine liver glutamate "));
 	CharTermAttribute cattr = stream.addAttribute(CharTermAttribute.class);
 	stream.reset();
 	while (stream.incrementToken()) {
@@ -42,7 +38,7 @@ public class BiomedicalAnalyzer extends Analyzer {
         BiomedicalTokenizer src = new BiomedicalTokenizer(arg1);
         TokenStream result = src; //new StandardFilter(Version.LUCENE_43, src);
         result = new LowerCaseFilter(Version.LUCENE_43, result);
-//        result = new StopFilter(Version.LUCENE_43, result,  StandardAnalyzer.STOP_WORDS_SET);
+        result = new StopFilter(Version.LUCENE_43, result,  StandardAnalyzer.STOP_WORDS_SET);
         result = new PorterStemFilter(result);
         return new TokenStreamComponents(src, result);
     }

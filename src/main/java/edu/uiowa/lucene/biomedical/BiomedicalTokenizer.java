@@ -1,10 +1,8 @@
 package edu.uiowa.lucene.biomedical;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 
-import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
@@ -16,33 +14,10 @@ public class BiomedicalTokenizer extends Tokenizer {
     /** A private instance of the JFlex-constructed scanner */
     private biomedicalLexerFlex scanner;
 
-    /** Alpha/numeric token type */
-    public static final int ALPHANUM = 0;
-    /** Numeric token type */
-    public static final int NUM = 1;
-    /** Southeast Asian token type */
-    public static final int SOUTHEAST_ASIAN = 2;
-    /** Ideographic token type */
-    public static final int IDEOGRAPHIC = 3;
-    /** Hiragana token type */
-    public static final int HIRAGANA = 4;
-    /** Katakana token type */
-    public static final int KATAKANA = 5;
-    /** Hangul token type */
-    public static final int HANGUL = 6;
-    /** Emoji token type. */
-    public static final int EMOJI = 7;
-    
     /** String token types that correspond to token type int constants */
     public static final String [] TOKEN_TYPES = new String [] {
       "<ALPHANUM>",
-      "<NUM>",
-      "<SOUTHEAST_ASIAN>",
-      "<IDEOGRAPHIC>",
-      "<HIRAGANA>",
-      "<KATAKANA>",
-      "<HANGUL>",
-      "<EMOJI>"
+      "<NUM>"
     };
     
     /** Absolute maximum sized token */

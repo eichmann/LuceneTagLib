@@ -3,6 +3,7 @@ import java_cup.runtime.*;
 
 %%
 
+
 %public
 %cup
 %class booleanParseFlex
@@ -18,7 +19,7 @@ import java_cup.runtime.*;
 \)							{ return (new Symbol(BooleanParseSym.RPAREN, yytext()));
 							}
 
-\&							{ return (new Symbol(BooleanParseSym.AND_OP, yytext()));
+\&							{ return  (new Symbol(BooleanParseSym.AND_OP, yytext()));
 							}
 
 \|							{ return (new Symbol(BooleanParseSym.OR_OP, yytext()));
