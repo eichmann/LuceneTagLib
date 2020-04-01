@@ -2,7 +2,9 @@ package edu.uiowa.lucene.biomedical;
 
 import java.util.*;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -38,15 +40,15 @@ Pat ::=
 	| LPAREN Pat:p RPAREN		{: 	RESULT = p;
 									BiomedicalParseCup.log.info("\tgrouped query: " + RESULT);
 								:}
-	| TokenList:p	{:	StringBuffer buffer = new StringBuffer();
+	| TokenList:p	{:	Query theQuery = new BooleanQuery();
 						for (String e : p) {
-							buffer.append(e.replaceAll("-"," ") + " ");
+							BiomedicalParseCup.log.info("\tterm: " + e);
+							QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, "content", new BiomedicalNormalizer());
+							Query termQuery = theQueryParser.parse(e);            	
+							((BooleanQuery)theQuery).add(termQuery,BooleanClause.Occur.MUST);
 						}
-						BiomedicalParseCup.log.info("\ttoken string: " + buffer);
-						QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, "content", new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
-						Query theQuery = theQueryParser.parse(buffer.toString());            	
 						RESULT = theQuery;
-						BiomedicalParseCup.log.info("\ttoken string: " + buffer + "\tquery: " + RESULT);
+						BiomedicalParseCup.log.info("\ttoken string: " + p + "\t" + RESULT);
 					:}
 	| Pat:leftPat AND_OP Pat:rightPat	{:	if (rightPat == null) {
 												RESULT = leftPat;

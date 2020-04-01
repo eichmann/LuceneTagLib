@@ -25,6 +25,7 @@ src/main/java/edu/uiowa/lucene/LuceneIterator.java svneol=native#text/x-java-sou
 src/main/java/edu/uiowa/lucene/LuceneSearch.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneTaxonomy.java -text
 src/main/java/edu/uiowa/lucene/biomedical/BiomedicalAnalyzer.java -text
+src/main/java/edu/uiowa/lucene/biomedical/BiomedicalNormalizer.java -text
 src/main/java/edu/uiowa/lucene/biomedical/BiomedicalParseCup.java -text
 src/main/java/edu/uiowa/lucene/biomedical/BiomedicalParseSym.java -text
 src/main/java/edu/uiowa/lucene/biomedical/BiomedicalTokenizer.java -text
