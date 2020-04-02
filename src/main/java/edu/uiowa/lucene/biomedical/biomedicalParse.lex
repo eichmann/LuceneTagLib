@@ -192,27 +192,27 @@ NAME_INITIALS={UPPER}("."?"-"?{UPPER})*"."
 	}	
 
 <YYINITIAL> {OPEN_GROUPING} / {ALPHA_NUMERIC}+("-"{ALPHA_NUMERIC}+)*"'s"?{TERMINATION}*{WHITE_SPACE_CHAR} {
-	return (new Symbol(BooleanParseSym.String, yytext()));
+	return (new Symbol(BooleanParseSym.LPAREN, yytext()));
 	}
 
 <YYINITIAL> {OPEN_GROUPING} / ({UPPER}"."({UPPER}".")+)","?|({LOWER}"."({LOWER}".")+)","? {
-	return (new Symbol(BooleanParseSym.String, yytext()));
+	return (new Symbol(BooleanParseSym.LPAREN, yytext()));
 	}
 
 <YYINITIAL> {OPEN_GROUPING} / {DIGIT}+"."{DIGIT}+{TERMINATION}*{WHITE_SPACE_CHAR} {
-	return (new Symbol(BooleanParseSym.String, yytext()));
+	return (new Symbol(BooleanParseSym.LPAREN, yytext()));
 	}
 
 <YYINITIAL> {OPEN_GROUPING} / {DIGIT}{1,3}(","{DIGIT}{1,3})*("."{DIGIT}+)?("-"{DIGIT}+("."{DIGIT}+)?)?"%"?{TERMINATION}*{WHITE_SPACE_CHAR} {
-	return (new Symbol(BooleanParseSym.String, yytext()));
+	return (new Symbol(BooleanParseSym.LPAREN, yytext()));
 	}
 
 <YYINITIAL> {OPEN_GROUPING} / {NOT_CLOSE_GROUPING}*{TERMINATION}*{WHITE_SPACE_CHAR} {
-	return (new Symbol(BooleanParseSym.String, yytext()));
+	return (new Symbol(BooleanParseSym.LPAREN, yytext()));
 	}
 
 <YYINITIAL> {CLOSE_GROUPING} / {TERMINATION}*{WHITE_SPACE_CHAR} {
-	return (new Symbol(BooleanParseSym.String, yytext()));
+	return (new Symbol(BooleanParseSym.RPAREN, yytext()));
 	}
 
 <YYINITIAL> {OPEN_QUOTE} / {ALPHA_NUMERIC}+{CLOSE_QUOTE}*{WHITE_SPACE_CHAR} {
