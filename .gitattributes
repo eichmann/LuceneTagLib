@@ -34,7 +34,6 @@ src/main/java/edu/uiowa/lucene/biomedical/biomedicalLexerFlex.java -text
 src/main/java/edu/uiowa/lucene/biomedical/biomedicalLexerFlex.lex -text
 src/main/java/edu/uiowa/lucene/biomedical/biomedicalParse.cup -text
 src/main/java/edu/uiowa/lucene/biomedical/biomedicalParse.lex -text
-src/main/java/edu/uiowa/lucene/biomedical/biomedicalParseFlex.java -text
 src/main/java/edu/uiowa/lucene/booleanSearch/BooleanParseCup.java -text
 src/main/java/edu/uiowa/lucene/booleanSearch/BooleanParseSym.java -text
 src/main/java/edu/uiowa/lucene/booleanSearch/booleanParse.cup -text

@@ -20,6 +20,8 @@ public class LD4LAnalyzer extends Analyzer {
     static Logger logger = Logger.getLogger(LD4LAnalyzer.class);
     static LD4LAnalyzer analyzer = null;
     
+    boolean doStemming = false;
+    
     public static void main(String[] args) throws IOException {
         PropertyConfigurator.configure("/Users/eichmann/Documents/Components/log4j.info");
         analyzer = new LD4LAnalyzer();
@@ -35,6 +37,15 @@ public class LD4LAnalyzer extends Analyzer {
         analyze("Vermeulen-Breedt, Marié, 1954-");
 
         analyzer.close();
+    }
+    
+    public LD4LAnalyzer() {
+	super();
+    }
+    
+    public LD4LAnalyzer(boolean doStemming) {
+	super();
+	this.doStemming = doStemming;
     }
     
     static void analyze(String input) throws IOException {
@@ -56,7 +67,8 @@ public class LD4LAnalyzer extends Analyzer {
         result = new ASCIIFoldingFilter(result); //note later versions than 4.3 include an additional boolean argument to flag whether to preserve the original token
         result = new LowerCaseFilter(Version.LUCENE_43, result);
         result = new StopFilter(Version.LUCENE_43, result,  StandardAnalyzer.STOP_WORDS_SET);
-//        result = new PorterStemFilter(result);
+        if (doStemming)
+            result = new PorterStemFilter(result);
         return new TokenStreamComponents(src, result);
     }
 }
