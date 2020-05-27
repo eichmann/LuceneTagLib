@@ -23,6 +23,7 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 ALPHA=[:letter:]
 NUMERIC=[0-9\u2150-\u218f]
 ALPHANUM={ALPHA}|{NUMERIC}
+WHITE_SPACE_CHAR=[\r\n\ \t\b\012\u2002-\u200e\u202f\u3000\uf020\ufeff]
 
 %{
   /** Character count processed so far */
@@ -55,5 +56,7 @@ ALPHANUM={ALPHA}|{NUMERIC}
 
 {ALPHA}+([-]{ALPHANUM}+)* { return ld4lParseSym.String;
 							}
+
+{WHITE_SPACE_CHAR} { }
 
 . { }

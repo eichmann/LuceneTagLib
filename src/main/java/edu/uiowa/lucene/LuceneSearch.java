@@ -36,6 +36,7 @@ import edu.uiowa.lucene.biomedical.BiomedicalParseCup;
 import edu.uiowa.lucene.biomedical.biomedicalParseFlex;
 import edu.uiowa.lucene.booleanSearch.*;
 import edu.uiowa.lucene.conceptSearch.*;
+import edu.uiowa.lucene.ld4lSearch.LD4LAnalyzer;
 import edu.uiowa.lucene.ld4lSearch.LD4LParser;
 
 @SuppressWarnings("serial")
@@ -142,7 +143,9 @@ public class LuceneSearch extends BodyTagSupport {
 		theQuery = mlt.like(new StringReader(queryString), "content");
 		break;
 	    case "ld4l":
-		theQuery = LD4LParser.parse(queryString, label);
+		org.apache.lucene.queryparser.classic.QueryParser ld4lParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label,
+			new LD4LAnalyzer());
+		theQuery = ld4lParser.parse(queryString);
 		break;
 	    default:
 		org.apache.lucene.queryparser.classic.QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label,
