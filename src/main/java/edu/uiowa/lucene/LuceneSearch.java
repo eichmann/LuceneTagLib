@@ -25,6 +25,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queries.mlt.MoreLikeThis;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
@@ -145,6 +146,7 @@ public class LuceneSearch extends BodyTagSupport {
 	    case "ld4l":
 		org.apache.lucene.queryparser.classic.QueryParser ld4lParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label,
 			new LD4LAnalyzer());
+		ld4lParser.setDefaultOperator(Operator.AND);
 		theQuery = ld4lParser.parse(queryString);
 		break;
 	    default:
