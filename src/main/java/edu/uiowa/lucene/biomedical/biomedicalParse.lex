@@ -5,7 +5,6 @@ import java_cup.runtime.*;
 
 %%
 
-
 %public
 %cup
 %class biomedicalParseFlex
