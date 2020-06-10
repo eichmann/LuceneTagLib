@@ -13,7 +13,7 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
     static Logger logger = Logger.getLogger(biomedicalLexerFlex.class);
 %} 
 
-%unicode 9.0
+%unicode
 %integer
 %final
 %public
