@@ -197,6 +197,12 @@
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
+
+        <attribute>
+            <name>useStemming</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
 	</tag>
 	
 	<tag>

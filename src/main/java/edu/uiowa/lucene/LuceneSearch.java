@@ -56,6 +56,7 @@ public class LuceneSearch extends BodyTagSupport {
     String queryParserName = null;
     boolean useConjunctionByDefault = false;
     boolean useDateHack = false;
+    boolean useStemming = false;
 
     public static SimpleFSLockFactory _LockFactory;
     private static final Log log = LogFactory.getLog(LuceneSearch.class);
@@ -145,7 +146,7 @@ public class LuceneSearch extends BodyTagSupport {
 		break;
 	    case "ld4l":
 		org.apache.lucene.queryparser.classic.QueryParser ld4lParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label,
-			new LD4LAnalyzer());
+			new LD4LAnalyzer(useStemming));
 		ld4lParser.setDefaultOperator(Operator.AND);
 		theQuery = ld4lParser.parse(queryString);
 		break;
@@ -257,6 +258,14 @@ public class LuceneSearch extends BodyTagSupport {
 
     public void setUseDateHack(boolean useDateHack) {
 	this.useDateHack = useDateHack;
+    }
+
+    public boolean getUseStemming() {
+	return useStemming;
+    }
+
+    public void setUseStemming(boolean useStemming) {
+	this.useStemming = useStemming;
     }
 
     public List<FacetResult> getFacetResults() {
