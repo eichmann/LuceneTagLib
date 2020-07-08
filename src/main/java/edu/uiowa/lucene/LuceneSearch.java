@@ -148,7 +148,8 @@ public class LuceneSearch extends BodyTagSupport {
 		break;
 	    case "ld4l":
 		if (useExactMatch) {
-		    theQuery =  new TermQuery(new Term(queryString));
+		    log.info("exact match: " + queryString);
+		    theQuery =  new TermQuery(new Term(label,queryString));
 		} else {
 		    org.apache.lucene.queryparser.classic.QueryParser ld4lParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_43, label,
 			    new LD4LAnalyzer(useStemming));
