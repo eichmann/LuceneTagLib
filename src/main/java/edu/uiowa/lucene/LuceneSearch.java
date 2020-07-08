@@ -23,11 +23,13 @@ import org.apache.lucene.facet.taxonomy.CategoryPath;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queries.mlt.MoreLikeThis;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.SimpleFSLockFactory;
@@ -57,6 +59,7 @@ public class LuceneSearch extends BodyTagSupport {
     boolean useConjunctionByDefault = false;
     boolean useDateHack = false;
     boolean useStemming = false;
+    boolean useExactMatch = false;
 
     public static SimpleFSLockFactory _LockFactory;
     private static final Log log = LogFactory.getLog(LuceneSearch.class);
@@ -99,7 +102,6 @@ public class LuceneSearch extends BodyTagSupport {
 	return buffer.toString().trim();
     }
 
-    @SuppressWarnings("deprecation")
     public int doStartTag() throws JspException {
 	log.info("search called: " + queryString);
 	
@@ -145,14 +147,18 @@ public class LuceneSearch extends BodyTagSupport {
 		theQuery = mlt.like(new StringReader(queryString), "content");
 		break;
 	    case "ld4l":
-		org.apache.lucene.queryparser.classic.QueryParser ld4lParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label,
-			new LD4LAnalyzer(useStemming));
-		ld4lParser.setDefaultOperator(Operator.AND);
-		theQuery = ld4lParser.parse(queryString);
+		if (useExactMatch) {
+		    theQuery =  new TermQuery(new Term(queryString));
+		} else {
+		    org.apache.lucene.queryparser.classic.QueryParser ld4lParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_43, label,
+			    new LD4LAnalyzer(useStemming));
+		    ld4lParser.setDefaultOperator(Operator.AND);
+		    theQuery = ld4lParser.parse(queryString);
+		}
 		break;
 	    default:
-		org.apache.lucene.queryparser.classic.QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, label,
-			new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
+		org.apache.lucene.queryparser.classic.QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_43, label,
+			new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_43));
 		theQuery = theQueryParser.parse(queryString);
 		break;
 	    }
@@ -266,6 +272,14 @@ public class LuceneSearch extends BodyTagSupport {
 
     public void setUseStemming(boolean useStemming) {
 	this.useStemming = useStemming;
+    }
+
+    public boolean getUseExactMatch() {
+	return useExactMatch;
+    }
+
+    public void setUseExactMatch(boolean useExactMatch) {
+	this.useExactMatch = useExactMatch;
     }
 
     public List<FacetResult> getFacetResults() {
