@@ -54,7 +54,7 @@ WHITE_SPACE_CHAR=[\r\n\ \t\b\012\u2002-\u200e\u202f\u3000\uf020\ufeff]
 {NUMERIC}+					{ return ld4lParseSym.EOF;
 							}
 
-{ALPHA}+([-]{ALPHANUM}+)* { return ld4lParseSym.String;
+{ALPHA}+([-?*]{ALPHANUM}+)* { return ld4lParseSym.String;
 							}
 
 {WHITE_SPACE_CHAR} { }
