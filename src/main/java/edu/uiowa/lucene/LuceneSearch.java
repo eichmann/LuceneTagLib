@@ -60,6 +60,7 @@ public class LuceneSearch extends BodyTagSupport {
     boolean useDateHack = false;
     boolean useStemming = false;
     boolean useExactMatch = false;
+    Operator defaultOperator = Operator.AND;
 
     public static SimpleFSLockFactory _LockFactory;
     private static final Log log = LogFactory.getLog(LuceneSearch.class);
@@ -153,7 +154,7 @@ public class LuceneSearch extends BodyTagSupport {
 		} else {
 		    org.apache.lucene.queryparser.classic.QueryParser ld4lParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_43, label,
 			    new LD4LAnalyzer(useStemming));
-		    ld4lParser.setDefaultOperator(Operator.AND);
+		    ld4lParser.setDefaultOperator(defaultOperator);
 		    theQuery = ld4lParser.parse(queryString);
 		}
 		break;
@@ -281,6 +282,14 @@ public class LuceneSearch extends BodyTagSupport {
 
     public void setUseExactMatch(boolean useExactMatch) {
 	this.useExactMatch = useExactMatch;
+    }
+    
+    public String getDefaultOperator() {
+	return defaultOperator.toString();
+    }
+    
+    public void setDefaultOperator(String defaultOperator) {
+	this.defaultOperator = Operator.valueOf(defaultOperator);
     }
 
     public List<FacetResult> getFacetResults() {
