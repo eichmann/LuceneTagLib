@@ -37,9 +37,9 @@ public class LuceneIterator extends BodyTagSupport {
     private static final Log log = LogFactory.getLog(LuceneIterator.class);
 
     public int doStartTag() throws JspException {
-	log.trace("limit: " + limitCriteria);
-	log.trace("start: " + startCriteria);
-	log.trace("threshold: " + thresholdCriteria);
+	log.info("limit: " + limitCriteria);
+	log.info("start: " + startCriteria);
+	log.info("threshold: " + thresholdCriteria);
 	theSearch = (LuceneSearch) findAncestorWithClass(this, LuceneSearch.class);
 
 	if (theSearch == null) {
@@ -76,7 +76,7 @@ public class LuceneIterator extends BodyTagSupport {
     }
 
     public int doAfterBody() throws JspTagException {
-	if (limitCriteria > 0 && hitFence >= limitCriteria + startCriteria - 1) {
+	if (limitCriteria <= 0 || (limitCriteria > 0 && hitFence >= limitCriteria + startCriteria - 1)) {
 	    clearServiceState();
 	    return SKIP_BODY;
 	}
