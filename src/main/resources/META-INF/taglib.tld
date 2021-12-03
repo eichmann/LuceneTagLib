@@ -211,6 +211,12 @@
         </attribute>
 
         <attribute>
+            <name>caseSensitive</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+
+        <attribute>
             <name>defaultOperator</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>

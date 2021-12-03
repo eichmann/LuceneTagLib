@@ -68,6 +68,7 @@ public class LuceneSearch extends BodyTagSupport {
 	boolean useDateHack = false;
 	boolean useStemming = false;
 	boolean useExactMatch = false;
+	boolean caseSensitive = true;
 	Operator defaultOperator = Operator.AND;
 
 	public static void main(String[] args) {
@@ -167,9 +168,12 @@ public class LuceneSearch extends BodyTagSupport {
 				theQuery = mlt.like(new StringReader(queryString), "content");
 				break;
 			case "ld4l":
-				if (useExactMatch) {
+				if (useExactMatch && caseSensitive) {
 					log.info("exact match: " + queryString);
 					theQuery = new TermQuery(new Term(label, queryString));
+				} else if (useExactMatch) {
+					log.info("exact match(insensitive): " + queryString);
+					theQuery = new TermQuery(new Term(label, queryString.toLowerCase()));
 				} else {
 					org.apache.lucene.queryparser.classic.QueryParser ld4lParser = new QueryParser(
 							org.apache.lucene.util.Version.LUCENE_43, label, new LD4LAnalyzer(useStemming));
@@ -302,6 +306,14 @@ public class LuceneSearch extends BodyTagSupport {
 
 	public void setUseExactMatch(boolean useExactMatch) {
 		this.useExactMatch = useExactMatch;
+	}
+
+	public boolean getCaseSensitive() {
+		return caseSensitive;
+	}
+
+	public void setCaseSensitive(boolean caseSensitive) {
+		this.caseSensitive = caseSensitive;
 	}
 
 	public String getDefaultOperator() {
