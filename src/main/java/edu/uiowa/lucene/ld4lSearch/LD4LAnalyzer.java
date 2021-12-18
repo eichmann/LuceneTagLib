@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilter;
@@ -17,13 +17,12 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.util.Version;
 
 public class LD4LAnalyzer extends Analyzer {
-    static Logger logger = Logger.getLogger(LD4LAnalyzer.class);
+	static Logger logger = LogManager.getLogger(LD4LAnalyzer.class);
     static LD4LAnalyzer analyzer = null;
     
     boolean doStemming = false;
     
     public static void main(String[] args) throws IOException {
-        PropertyConfigurator.configure("/Users/eichmann/Documents/Components/log4j.info");
         analyzer = new LD4LAnalyzer();
 
         analyze("Grulke, Markus");

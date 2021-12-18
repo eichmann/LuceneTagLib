@@ -1,6 +1,7 @@
 package edu.uiowa.lucene.ld4lSearch;
 import java.lang.System;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
 %%
@@ -9,7 +10,7 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 %class ld4lLexerFlex
 
 %{
-    static Logger logger = Logger.getLogger(ld4lLexerFlex.class);
+	static Logger logger = LogManager.getLogger(ld4lLexerFlex.class);
 %} 
 
 %unicode

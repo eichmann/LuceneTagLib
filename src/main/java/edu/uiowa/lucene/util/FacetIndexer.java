@@ -23,8 +23,8 @@ import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.Syntax;
 import org.apache.jena.tdb.TDBFactory;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -42,7 +42,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
 public class FacetIndexer {
-	static Logger logger = Logger.getLogger(FacetIndexer.class);
+	static Logger logger = LogManager.getLogger(FacetIndexer.class);
 	LocalProperties prop_file = null;
 	static Connection wintermuteConn = null;
 	static Connection deepConn = null;
@@ -71,7 +71,6 @@ public class FacetIndexer {
 			+ "PREFIX xml: <http://www.w3.org/XML/1998/namespace>" + "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>";
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException, JspTagException {
-		PropertyConfigurator.configure(args[0]);
 		wintermuteConn = getConnection("lucene");
 		deepConn = getConnection("lucene");
 

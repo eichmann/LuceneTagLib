@@ -2,6 +2,7 @@ package edu.uiowa.lucene.biomedical;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -12,7 +13,7 @@ import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
 public class BiomedicalTokenizer extends Tokenizer {
     /** A private instance of the JFlex-constructed scanner */
-    private biomedicalLexerFlex scanner;
+    private biomedicalLexerFlex scanner = new biomedicalLexerFlex(input);
 
     /** String token types that correspond to token type int constants */
     public static final String [] TOKEN_TYPES = new String [] {
@@ -63,6 +64,11 @@ public class BiomedicalTokenizer extends Tokenizer {
       super(reader);
       init();
     }
+    
+    public BiomedicalTokenizer() {
+    	super(new StringReader("x"));
+    	init();
+    }
 
     private void init() {
       this.scanner = new biomedicalLexerFlex(input);
@@ -87,7 +93,7 @@ public class BiomedicalTokenizer extends Tokenizer {
 
       while(true) {
         int tokenType = scanner.getNextToken();
-
+        System.out.println(tokenType);
         if (tokenType == biomedicalLexerFlex.YYEOF) {
           return false;
         }
