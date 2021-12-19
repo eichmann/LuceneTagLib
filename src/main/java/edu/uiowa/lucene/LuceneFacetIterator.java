@@ -13,15 +13,15 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.facet.search.FacetResult;
 import org.apache.lucene.facet.search.FacetResultNode;
 
 @SuppressWarnings("serial")
 
 public class LuceneFacetIterator extends BodyTagSupport {
-    private static final Log log = LogFactory.getLog(LuceneFacetIterator.class);
+	static Logger logger = LogManager.getLogger(LuceneFacetIterator.class);
 
     LuceneSearch theSearch = null;
     LuceneFacet parentFacet = null;
@@ -34,18 +34,18 @@ public class LuceneFacetIterator extends BodyTagSupport {
     public int doStartTag() throws JspException {
 	theSearch = (LuceneSearch) findAncestorWithClass(this, LuceneSearch.class);
 	parentFacet = (LuceneFacet) findAncestorWithClass(this, LuceneFacet.class);
-	log.trace("doStartTag LuceneFacetIterator: " + theSearch + "\t" + parentFacet);
+	logger.trace("doStartTag LuceneFacetIterator: " + theSearch + "\t" + parentFacet);
 	if (theSearch == null) {
 	    throw new JspTagException("Lucene facet iterator tag not nesting in Search instance");
 	}
 
 	if (parentFacet == null) {
 	    facetResults = theSearch.getFacetResults();
-	    log.trace("FacetResult list: " + facetResults);
+	    logger.trace("FacetResult list: " + facetResults);
 	    hitFence = 0;
 	    if (hitFence < facetResults.size()) {
 		theResult = facetResults.get(hitFence++);
-		log.trace("facet: " + theResult);
+		logger.trace("facet: " + theResult);
 		return EVAL_BODY_INCLUDE;
 	    }
 	} else {
@@ -57,11 +57,11 @@ public class LuceneFacetIterator extends BodyTagSupport {
 	    } catch (Exception e) {
 		facetResultNodes = new ArrayList<FacetResultNode>();
 	    }
-	    log.trace("FacetResultNode list: " + facetResultNodes);
+	    logger.trace("FacetResultNode list: " + facetResultNodes);
 	    hitFence = 0;
 	    if (hitFence < facetResultNodes.size()) {
 		theResultNode = facetResultNodes.get(hitFence++);
-		log.trace("facet node: " + theResultNode);
+		logger.trace("facet node: " + theResultNode);
 		return EVAL_BODY_INCLUDE;
 	    }
 	}
@@ -81,7 +81,7 @@ public class LuceneFacetIterator extends BodyTagSupport {
 
 	    if (hitFence < facetResults.size()) {
 		theResult = facetResults.get(hitFence++);
-		log.trace("facet: " + theResult);
+		logger.trace("facet: " + theResult);
 		return EVAL_BODY_AGAIN;
 	    }
 	} else {
@@ -92,7 +92,7 @@ public class LuceneFacetIterator extends BodyTagSupport {
 
 	    if (hitFence < facetResultNodes.size()) {
 		theResultNode = facetResultNodes.get(hitFence++);
-		log.trace("facet node: " + theResultNode);
+		logger.trace("facet node: " + theResultNode);
 		return EVAL_BODY_AGAIN;
 	    }
 	}

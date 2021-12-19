@@ -11,8 +11,8 @@ import java.util.regex.Pattern;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
@@ -46,7 +46,7 @@ import edu.uiowa.lucene.ld4lSearch.LD4LAnalyzer;
 
 public class LuceneSearch extends BodyTagSupport {
 	public static SimpleFSLockFactory _LockFactory;
-	private static final Log log = LogFactory.getLog(LuceneSearch.class);
+	static Logger logger = LogManager.getLogger(LuceneSearch.class);
 	private static Pattern datePattern = Pattern.compile("([0-9]{4})-([0-9]{4})");
 	@SuppressWarnings("deprecation")
 	static CharArraySet stopWordSet = (new StopAnalyzer(org.apache.lucene.util.Version.LUCENE_30)).getStopwordSet();
@@ -73,9 +73,9 @@ public class LuceneSearch extends BodyTagSupport {
 
 	public static void main(String[] args) {
 		String originalQuery = "Robert Burton, Robert 1925-1984";
-		log.info("originalQuery:" + originalQuery);
-		log.info("asConjunctiveQuery: " + asConjunctiveQuery(originalQuery));
-		log.info("asConjunctiveQuery w/ date hack: " + asConjunctiveQuery(originalQuery, true));
+		logger.info("originalQuery:" + originalQuery);
+		logger.info("asConjunctiveQuery: " + asConjunctiveQuery(originalQuery));
+		logger.info("asConjunctiveQuery w/ date hack: " + asConjunctiveQuery(originalQuery, true));
 	}
 
 	public static String asConjunctiveQuery(String originalQuery) {
@@ -87,7 +87,7 @@ public class LuceneSearch extends BodyTagSupport {
 
 		for (String term : originalQuery.split("[, ]+")) {
 			if (stopWordSet.contains(term.toLowerCase())) {
-				log.info("skipping stop word: " + term);
+				logger.info("skipping stop word: " + term);
 				continue;
 			}
 			if (buffer.length() > 0)
@@ -121,15 +121,15 @@ public class LuceneSearch extends BodyTagSupport {
 	}
 
 	public int doStartTag() throws JspException {
-		log.info("search called: " + queryString);
+		logger.info("search called: " + queryString);
 
 		theTaxonomy = (LuceneTaxonomy) findAncestorWithClass(this, LuceneTaxonomy.class);
 
 		if (useConjunctionByDefault) {
 			queryString = asConjunctiveQuery(queryString, useDateHack);
-			log.info("rewriting query to: " + queryString);
+			logger.info("rewriting query to: " + queryString);
 		}
-		log.info("queryParserName: " + queryParserName);
+		logger.info("queryParserName: " + queryParserName);
 
 		try {
 			theSearcher = getSearcher(lucenePath);
@@ -139,8 +139,8 @@ public class LuceneSearch extends BodyTagSupport {
 				theTaxonomy.fsp = new FacetSearchParams(theTaxonomy.facetRequests);
 				facetCollector = FacetsCollector.create(theTaxonomy.fsp, theSearcher.getIndexReader(),
 						theTaxonomy.taxoReader);
-				log.trace("taxonomy: " + theTaxonomy);
-				log.trace("facet collector: " + facetCollector);
+				logger.trace("taxonomy: " + theTaxonomy);
+				logger.trace("facet collector: " + facetCollector);
 			}
 
 			switch (queryParserName) {
@@ -154,7 +154,7 @@ public class LuceneSearch extends BodyTagSupport {
 						.parse().value;
 				break;
 			case "biomedical":
-				log.info("calling biomedical...");
+				logger.info("calling biomedical...");
 				theQuery = (Query) (new BiomedicalParseCup(
 						new biomedicalParseFlex(new StringReader(queryString + " ")))).parse().value;
 				break;
@@ -169,10 +169,10 @@ public class LuceneSearch extends BodyTagSupport {
 				break;
 			case "ld4l":
 				if (useExactMatch && caseSensitive) {
-					log.info("exact match: " + queryString);
+					logger.info("exact match: " + queryString);
 					theQuery = new TermQuery(new Term(label, queryString));
 				} else if (useExactMatch) {
-					log.info("exact match(insensitive): " + queryString);
+					logger.info("exact match(insensitive): " + queryString);
 					theQuery = new TermQuery(new Term(label, queryString.toLowerCase()));
 				} else {
 					org.apache.lucene.queryparser.classic.QueryParser ld4lParser = new QueryParser(
@@ -189,7 +189,7 @@ public class LuceneSearch extends BodyTagSupport {
 				break;
 			}
 
-			log.info("actual query: " + theQuery);
+			logger.info("actual query: " + theQuery);
 
 			if (theTaxonomy == null) {
 				theHits = theSearcher.search(theQuery, 1000);
@@ -198,28 +198,28 @@ public class LuceneSearch extends BodyTagSupport {
 					FacetSearchParams fsp = new FacetSearchParams(theTaxonomy.facetRequests);
 					DrillDownQuery q2 = new DrillDownQuery(fsp.indexingParams, theQuery);
 					for (String drillDownFacet : theTaxonomy.drillDownFacets) {
-						log.info("\tadding category path: " + drillDownFacet);
+						logger.info("\tadding category path: " + drillDownFacet);
 						q2.add(new CategoryPath(drillDownFacet, '/'));
 					}
 //		    q2.add(new CategoryPath("Source/CTSAsearch", '/'));
 //		    q2.add(new CategoryPath("Entity/Person/Professor", '/'));
 					theQuery = q2;
 				}
-				log.info("facet query: " + theQuery);
+				logger.info("facet query: " + theQuery);
 				theSearcher.search(theQuery, facetCollector);
 				facetResults = facetCollector.getFacetResults();
 				theHits = theSearcher.search(theQuery, 1000);
 			}
 
-			log.debug(theHits.totalHits);
+			logger.debug(theHits.totalHits);
 
 			return EVAL_BODY_INCLUDE;
 		} catch (CorruptIndexException e) {
-			log.error("Corruption Exception", e);
+			logger.error("Corruption Exception", e);
 		} catch (IOException e) {
-			log.error("IO Exception", e);
+			logger.error("IO Exception", e);
 		} catch (Exception e) {
-			log.error("Problem Parsing" + queryString, e);
+			logger.error("Problem Parsing" + queryString, e);
 		}
 
 		return EVAL_BODY_INCLUDE;
@@ -229,7 +229,7 @@ public class LuceneSearch extends BodyTagSupport {
 		try {
 			releaseSearcher(lucenePath, theSearcher);
 		} catch (IOException e) {
-			log.error("Corruption Exception", e);
+			logger.error("Corruption Exception", e);
 		}
 		clearServiceState();
 		return super.doEndTag();

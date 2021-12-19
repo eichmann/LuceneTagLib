@@ -14,10 +14,6 @@ public class LuceneIndex extends BodyTagSupport {
     Document theDocument = null;
     boolean truncate = false;
 
-    // public static SimpleFSLockFactory _LockFactory;
-    // private static final Log log =LogFactory.getLog(LuceneIndex.class);
-    // static Lock writeLock = new ReentrantLock();
-
     public int doStartTag() throws JspException {
 
 	LuceneHelper.updateIndex(lucenePath, truncate);

@@ -12,8 +12,8 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.search.ScoreDoc;
@@ -34,12 +34,12 @@ public class LuceneIterator extends BodyTagSupport {
 	int limitCriteria = Integer.MAX_VALUE;
 	int startCriteria = 1;
 	double thresholdCriteria = 0.0;
-	private static final Log log = LogFactory.getLog(LuceneIterator.class);
+	static Logger logger = LogManager.getLogger(LuceneIterator.class);
 
 	public int doStartTag() throws JspException {
-		log.trace("limit: " + limitCriteria);
-		log.trace("start: " + startCriteria);
-		log.trace("threshold: " + thresholdCriteria);
+		logger.trace("limit: " + limitCriteria);
+		logger.trace("start: " + startCriteria);
+		logger.trace("threshold: " + thresholdCriteria);
 		theSearch = (LuceneSearch) findAncestorWithClass(this, LuceneSearch.class);
 
 		if (theSearch == null) {
@@ -65,10 +65,10 @@ public class LuceneIterator extends BodyTagSupport {
 				return EVAL_BODY_INCLUDE;
 			}
 		} catch (CorruptIndexException e) {
-			log.error("Corruption Exception", e);
+			logger.error("Corruption Exception", e);
 
 		} catch (IOException e) {
-			log.error("IO Exception", e);
+			logger.error("IO Exception", e);
 
 		}
 
@@ -93,11 +93,11 @@ public class LuceneIterator extends BodyTagSupport {
 			try {
 				theDocument = theSearch.theSearcher.doc(theHit.doc);
 			} catch (CorruptIndexException e) {
-				log.error("Corruption Exception", e);
+				logger.error("Corruption Exception", e);
 
 				throw (new JspTagException(e.toString()));
 			} catch (IOException e) {
-				log.error("IO Exception", e);
+				logger.error("IO Exception", e);
 				throw (new JspTagException(e.toString()));
 			}
 			return EVAL_BODY_AGAIN;

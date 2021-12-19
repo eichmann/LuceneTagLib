@@ -4,13 +4,13 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @SuppressWarnings("serial")
 
 public class LuceneDrillDownFacet extends BodyTagSupport {
-    private static final Log log = LogFactory.getLog(LuceneDrillDownFacet.class);
+	static Logger logger = LogManager.getLogger(LuceneDrillDownFacet.class);
 
     LuceneTaxonomy theTaxonomy = null;
     String categoryPath = null;
@@ -22,7 +22,7 @@ public class LuceneDrillDownFacet extends BodyTagSupport {
 	    throw new JspTagException("Lucene drill down facet tag not nesting in Taxonomy instance");
 	}
 	
-	log.info("adding drill down category path " + categoryPath);
+	logger.info("adding drill down category path " + categoryPath);
 	theTaxonomy.addDrillDownFacet(categoryPath);
 
 	return EVAL_PAGE;

@@ -2,19 +2,18 @@ package edu.uiowa.lucene;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @SuppressWarnings("serial")
 
 public class LuceneDrillDownProcessor extends BodyTagSupport {
-    private static final Log log = LogFactory.getLog(LuceneDrillDownProcessor.class);
+	static Logger logger = LogManager.getLogger(LuceneDrillDownProcessor.class);
 
     LuceneTaxonomy theTaxonomy = null;
     String categoryPaths = null;
@@ -24,7 +23,7 @@ public class LuceneDrillDownProcessor extends BodyTagSupport {
 
     public int doStartTag() throws JspTagException {
 	theTaxonomy = (LuceneTaxonomy) findAncestorWithClass(this, LuceneTaxonomy.class);
-	log.trace("doStartTag - categoryPaths: " + categoryPaths + "\tdrillUpCategory: " + drillUpCategory + "\tdrillOutCategory: " + drillOutCategory);
+	logger.trace("doStartTag - categoryPaths: " + categoryPaths + "\tdrillUpCategory: " + drillUpCategory + "\tdrillOutCategory: " + drillOutCategory);
 
 	if (theTaxonomy == null) {
 	    throw new JspTagException("Lucene drill down facet tag not nesting in Taxonomy instance");
@@ -40,10 +39,10 @@ public class LuceneDrillDownProcessor extends BodyTagSupport {
 	    }
 	    categoryPathList.add(categoryPath);
 	}
-	log.info("previous category path list: " + categoryPathList);
+	logger.info("previous category path list: " + categoryPathList);
 	
 	if (drillUpCategory != null && drillUpCategory.length() > 0) {
-	    log.info("removing classpath: " + drillUpCategory);
+	    logger.info("removing classpath: " + drillUpCategory);
 	    ArrayList<String> temp = new ArrayList<String>();
 	    for (String current : categoryPathList) {
 		if (!current.equals(drillUpCategory))
@@ -54,18 +53,18 @@ public class LuceneDrillDownProcessor extends BodyTagSupport {
 	
 	if (drillOutCategory != null && drillOutCategory.length() > 0) {
 	    String newClassPath = drillOutCategory.substring(0, drillOutCategory.lastIndexOf("/"));
-	    log.info("shifting from classpath: " + drillOutCategory + " to " + newClassPath);
+	    logger.info("shifting from classpath: " + drillOutCategory + " to " + newClassPath);
 	    categoryPathList.remove(drillOutCategory);
 	    categoryPathList.add(newClassPath);
 	}
 	
 	for (String categoryPath : categoryPathList) {
-	    log.info("adding drill down category path " + categoryPath);
+	    logger.info("adding drill down category path " + categoryPath);
 	    theTaxonomy.addDrillDownFacet(categoryPath);
 	    try {
 		pageContext.getOut().print(categoryPath + "|");
 	    } catch (IOException e) {
-		log.error("exception raise: ", e);
+		logger.error("exception raise: ", e);
 	    }
 	}
 

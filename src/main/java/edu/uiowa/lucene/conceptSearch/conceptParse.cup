@@ -6,11 +6,11 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 parser code {:
-    static final Log log =LogFactory.getLog(ConceptParseCup.class);
+ 	static Logger logger = LogManager.getLogger(ConceptParseCup.class);
 
         public static void main(String args[]) throws Exception {
                 new ConceptParseCup(new conceptParseFlex(System.in)).parse();
@@ -30,13 +30,13 @@ precedence left NOT_OP;
 start with top;
 
 top ::=	Pat:p		{: RESULT = p;
-					   ConceptParseCup.log.info("\ttop: " + RESULT);
+					   ConceptParseCup.logger.info("\ttop: " + RESULT);
 					 :}
 	;
 
 Pat ::= 
 	| LPAREN Pat:p RPAREN		{: 	RESULT = p;
-									ConceptParseCup.log.info("\tgrouped query: " + RESULT);
+									ConceptParseCup.logger.info("\tgrouped query: " + RESULT);
 								:}
 	| TokenList:p	{:	StringBuffer buffer = new StringBuffer();
 						for (String e : p) {
@@ -51,35 +51,35 @@ Pat ::=
 						QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, "content", new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
 						Query theQuery = theQueryParser.parse(resultBuffer);            	
 						RESULT = theQuery;
-						ConceptParseCup.log.debug("\ttoken string: " + resultBuffer + "\tquery: " + RESULT);
+						ConceptParseCup.logger.debug("\ttoken string: " + resultBuffer + "\tquery: " + RESULT);
 					:}
 	| Pat:leftPat AND_OP Pat:rightPat	{:	Query theQuery = new BooleanQuery();
 											((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.MUST);
 											((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.MUST);
 											RESULT = theQuery;
-											ConceptParseCup.log.debug("\tand query: " + RESULT);
+											ConceptParseCup.logger.debug("\tand query: " + RESULT);
 										:}
 	| Pat:leftPat OR_OP Pat:rightPat	{:	Query theQuery = new BooleanQuery();
 											((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.SHOULD);
 											((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.SHOULD);
 											RESULT = theQuery;
-											ConceptParseCup.log.debug("\tor query: " + RESULT);
+											ConceptParseCup.logger.debug("\tor query: " + RESULT);
 										:}
 	| NOT_OP Pat:p	{:	Query theQuery = new BooleanQuery();
 						((BooleanQuery)theQuery).add(p, BooleanClause.Occur.MUST_NOT);
 						RESULT = theQuery;
-						ConceptParseCup.log.debug("\tnot query: " + RESULT);
+						ConceptParseCup.logger.debug("\tnot query: " + RESULT);
 					:}
 	 ;
 	
 TokenList ::= TokenList:p1  String:p2	{:	p1.addElement((String)p2);
 									   		RESULT = p1;
-									   		ConceptParseCup.log.debug("\ttoken list: " + RESULT);
+									   		ConceptParseCup.logger.debug("\ttoken list: " + RESULT);
 	 								 	:}
 	 		|   String:p				{:	Vector<String> list = new Vector<String>();
 	 								   		list.addElement((String)p);
 	 								   		RESULT = list;
-									   		ConceptParseCup.log.debug("\ttoken list first token: " + RESULT);
+									   		ConceptParseCup.logger.debug("\ttoken list first token: " + RESULT);
 	 								 	:}
 		 ;
 	

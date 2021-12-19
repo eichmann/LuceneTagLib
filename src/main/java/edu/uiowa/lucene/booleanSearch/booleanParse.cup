@@ -6,11 +6,11 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 parser code {:
-    static final Log log =LogFactory.getLog(BooleanParseCup.class);
+	static Logger logger = LogManager.getLogger(BooleanParseCup.class);
 
         public static void main(String args[]) throws Exception {
                 new BooleanParseCup(new booleanParseFlex(System.in)).parse();
@@ -30,13 +30,13 @@ precedence left NOT_OP;
 start with top;
 
 top ::=	Pat:p		{: RESULT = p;
-					   BooleanParseCup.log.info("\ttop: " + RESULT);
+					   BooleanParseCup.logger.info("\ttop: " + RESULT);
 					 :}
 	;
 
 Pat ::= 
 	| LPAREN Pat:p RPAREN		{: 	RESULT = p;
-									BooleanParseCup.log.info("\tgrouped query: " + RESULT);
+									BooleanParseCup.logger.info("\tgrouped query: " + RESULT);
 								:}
 	| TokenList:p	{:	StringBuffer buffer = new StringBuffer();
 						for (String e : p) {
@@ -45,7 +45,7 @@ Pat ::=
 						QueryParser theQueryParser = new QueryParser(org.apache.lucene.util.Version.LUCENE_30, "content", new StandardAnalyzer(org.apache.lucene.util.Version.LUCENE_30));
 						Query theQuery = theQueryParser.parse(buffer.toString());            	
 						RESULT = theQuery;
-						BooleanParseCup.log.info("\ttoken string: " + buffer + "\tquery: " + RESULT);
+						BooleanParseCup.logger.info("\ttoken string: " + buffer + "\tquery: " + RESULT);
 					:}
 	| Pat:leftPat AND_OP Pat:rightPat	{:	if (rightPat == null) {
 												RESULT = leftPat;
@@ -56,7 +56,7 @@ Pat ::=
 												((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.MUST);
 												((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.MUST);
 												RESULT = theQuery;
-												BooleanParseCup.log.info("\tand query: " + RESULT);
+												BooleanParseCup.logger.info("\tand query: " + RESULT);
 											}
 										:}
 	| Pat:leftPat OR_OP Pat:rightPat	{:	if (rightPat != null) {
@@ -64,25 +64,25 @@ Pat ::=
 												((BooleanQuery)theQuery).add(leftPat, BooleanClause.Occur.SHOULD);
 												((BooleanQuery)theQuery).add(rightPat, BooleanClause.Occur.SHOULD);
 												RESULT = theQuery;
-												BooleanParseCup.log.info("\tor query: " + RESULT);
+												BooleanParseCup.logger.info("\tor query: " + RESULT);
 											} else
 												RESULT = leftPat;
 										:}
 	| NOT_OP Pat:p	{:	Query theQuery = new BooleanQuery();
 						((BooleanQuery)theQuery).add(p, BooleanClause.Occur.MUST_NOT);
 						RESULT = theQuery;
-						BooleanParseCup.log.info("\tnot query: " + RESULT);
+						BooleanParseCup.logger.info("\tnot query: " + RESULT);
 					:}
 	 ;
 	
 TokenList ::= TokenList:p1  String:p2	{:	p1.addElement((String)p2);
 									   		RESULT = p1;
-									   		BooleanParseCup.log.info("\ttoken list: " + RESULT);
+									   		BooleanParseCup.logger.info("\ttoken list: " + RESULT);
 	 								 	:}
 	 		|   String:p				{:	Vector<String> list = new Vector<String>();
 	 								   		list.addElement((String)p);
 	 								   		RESULT = list;
-									   		BooleanParseCup.log.info("\ttoken list first token: " + RESULT);
+									   		BooleanParseCup.logger.info("\ttoken list first token: " + RESULT);
 	 								 	:}
 		 ;
 	

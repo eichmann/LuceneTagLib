@@ -3,8 +3,8 @@ package edu.uiowa.lucene.ld4lSearch;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -13,14 +13,14 @@ import org.apache.lucene.search.Query;
 @SuppressWarnings("deprecation")
 
 public class LD4LParser {
-    private static final Log log = LogFactory.getLog(LD4LParser.class);
+	static Logger logger = LogManager.getLogger(LD4LParser.class);
 
     public static Query parse(String queryString, String label) throws ParseException {
 	StringBuffer buffer = new StringBuffer();
 	
 	// first, ditch characters involved in range specification, then handle diacriticals
 	String[] tokens = queryString.replace('[', ' ').replace(']', ' ').replace('{', ' ').replace('}', ' ').split(" +");
-	log.info("tokens: " + logArray(tokens));
+	logger.info("tokens: " + logArray(tokens));
 	
 	for (String token : tokens) {
 	    buffer.append(token + " ");

@@ -6,8 +6,8 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.facet.search.FacetResult;
 import org.apache.lucene.facet.search.FacetResultNode;
 import org.apache.lucene.index.CorruptIndexException;
@@ -20,7 +20,7 @@ public class LuceneFacet extends BodyTagSupport {
     FacetResult theResult = null;
     FacetResultNode theResultNode = null;
     String label = null;
-    private static final Log log = LogFactory.getLog(LuceneFacet.class);
+	static Logger logger = LogManager.getLogger(LuceneFacet.class);
 
     public int doStartTag() throws JspTagException {
 	theSearch = (LuceneSearch) findAncestorWithClass(this, LuceneSearch.class);
@@ -36,10 +36,10 @@ public class LuceneFacet extends BodyTagSupport {
 
 	theResult = theIterator.theResult;
 	theResultNode = theIterator.theResultNode;
-	log.trace("facet tag: " + theResult + "\t" + theResultNode);
+	logger.trace("facet tag: " + theResult + "\t" + theResultNode);
 
 	if (theResult != null) {
-	    log.trace("facet subtags: " + theResult.getFacetResultNode().subResults);
+		logger.trace("facet subtags: " + theResult.getFacetResultNode().subResults);
 
 	    try {
 		if (label.equals("none")) {
@@ -50,12 +50,12 @@ public class LuceneFacet extends BodyTagSupport {
 		    pageContext.getOut().print(theResult.getFacetResultNode().label);
 		}
 	    } catch (CorruptIndexException e) {
-		log.error("Corruption Exception", e);
+	    	logger.error("Corruption Exception", e);
 	    } catch (IOException e) {
-		log.error("IO Exception", e);
+	    	logger.error("IO Exception", e);
 	    }
 	} else {
-	    log.trace("facet subtags: " + theResultNode.subResults);
+		logger.trace("facet subtags: " + theResultNode.subResults);
 
 	    try {
 		if (label.equals("none")) {
@@ -66,9 +66,9 @@ public class LuceneFacet extends BodyTagSupport {
 		    pageContext.getOut().print(theResultNode.label.components[theResultNode.label.components.length-1]);
 		}
 	    } catch (CorruptIndexException e) {
-		log.error("Corruption Exception", e);
+	    	logger.error("Corruption Exception", e);
 	    } catch (IOException e) {
-		log.error("IO Exception", e);
+	    	logger.error("IO Exception", e);
 	    }
 	}
 

@@ -4,15 +4,15 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.facet.search.CountFacetRequest;
 import org.apache.lucene.facet.taxonomy.CategoryPath;
 
 @SuppressWarnings("serial")
 
 public class LuceneCountFacetRequest extends BodyTagSupport {
-    private static final Log log = LogFactory.getLog(LuceneCountFacetRequest.class);
+	static Logger logger = LogManager.getLogger(LuceneCountFacetRequest.class);
 
     LuceneTaxonomy theTaxonomy = null;
     String categoryPath = null;
@@ -26,7 +26,7 @@ public class LuceneCountFacetRequest extends BodyTagSupport {
 	    throw new JspTagException("Lucene Concept Facet Request tag not nesting in Taxonomy instance");
 	}
 	
-	log.trace("adding category path " + categoryPath + ", result count: " + resultCount);
+	logger.trace("adding category path " + categoryPath + ", result count: " + resultCount);
 	CountFacetRequest theRequest = new CountFacetRequest(new CategoryPath(categoryPath), resultCount);
 	if (depth > 0)
 	    theRequest.setDepth(depth);

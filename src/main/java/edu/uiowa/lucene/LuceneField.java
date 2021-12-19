@@ -6,8 +6,8 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.document.Field;
 
 @SuppressWarnings("serial")
@@ -17,7 +17,7 @@ public class LuceneField extends BodyTagSupport {
     boolean keyField = false;
     String label = null;
     String value = null;
-    private static final Log log = LogFactory.getLog(LuceneField.class);
+	static Logger logger = LogManager.getLogger(LuceneField.class);
 
     public static String normalizeContent(String content) {
 	// we jump through this tokenization hoop due to the significant
@@ -59,18 +59,18 @@ public class LuceneField extends BodyTagSupport {
 		String normalizedContent = normalizeContent(content);
 		theDocument.theDocument.add(new Field(label, normalizedContent, Field.Store.YES, Field.Index.NOT_ANALYZED));
 
-		if (log.isDebugEnabled()) {
-		    log.debug("\tlabel: " + label + "\tcontent: '" + normalizedContent + "'");
+		if (logger.isDebugEnabled()) {
+			logger.debug("\tlabel: " + label + "\tcontent: '" + normalizedContent + "'");
 		}
 	    } else {
 		theDocument.theDocument.add(new Field(label, content, Field.Store.NO, Field.Index.ANALYZED));
 
-		if (log.isDebugEnabled()) {
+		if (logger.isDebugEnabled()) {
 		    StringBuffer buffer = new StringBuffer();
 		    StringTokenizer tokenizer = new StringTokenizer(content);
 		    while (buffer.length() < 50 && tokenizer.hasMoreTokens())
 			buffer.append(tokenizer.nextToken() + " ");
-		    log.debug("\tlabel: " + label + "\tcontent: " + buffer + "...");
+		    logger.debug("\tlabel: " + label + "\tcontent: " + buffer + "...");
 		}
 	    }
 	}
