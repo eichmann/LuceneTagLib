@@ -93,7 +93,7 @@ public class BiomedicalTokenizer extends Tokenizer {
 
       while(true) {
         int tokenType = scanner.getNextToken();
-        System.out.println(tokenType);
+
         if (tokenType == biomedicalLexerFlex.YYEOF) {
           return false;
         }
