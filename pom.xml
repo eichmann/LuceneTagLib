@@ -58,11 +58,6 @@
 			<version>4.3.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>9.3-1102-jdbc4</version>
-		</dependency>
-		<dependency>
 			<groupId>net.sf.squirrel-sql.thirdparty-non-maven</groupId>
 			<artifactId>java-cup</artifactId>
 			<version>0.11a</version>
@@ -77,6 +72,11 @@
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-analyzers-icu</artifactId>
 			<version>4.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.3.1</version>
 		</dependency>
 	</dependencies>
 	<build>
