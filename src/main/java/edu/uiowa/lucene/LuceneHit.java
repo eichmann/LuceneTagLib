@@ -15,6 +15,7 @@ import org.apache.lucene.index.CorruptIndexException;
 public class LuceneHit extends BodyTagSupport {
     LuceneSearch theSearch = null;
     LuceneIterator theIterator = null;
+    LuceneUniqueIterator theUniqueIterator = null;
     boolean keyField = false;
     String label = null;
     String value = null;
@@ -23,6 +24,7 @@ public class LuceneHit extends BodyTagSupport {
     public int doStartTag() throws JspTagException {
 	theSearch = (LuceneSearch) findAncestorWithClass(this, LuceneSearch.class);
 	theIterator = (LuceneIterator) findAncestorWithClass(this, LuceneIterator.class);
+	theUniqueIterator = (LuceneUniqueIterator) findAncestorWithClass(this, LuceneUniqueIterator.class);
 
 	if (theSearch == null) {
 	    throw new JspTagException("Lucene Hit tag not nesting in Search instance");
@@ -31,9 +33,12 @@ public class LuceneHit extends BodyTagSupport {
 	try {
 	    if (label.equals("score"))
 		pageContext.getOut().print(theIterator.theHit.score);
-	    else {
+	    else if (theIterator == null) {
+	    	logger.trace("lucene hit: " + theUniqueIterator.theDocument.get(label));
+	    	pageContext.getOut().print(theUniqueIterator.theDocument.get(label));	    	
+	    } else {
 	    	logger.trace("lucene hit: " + theIterator.theDocument.get(label));
-		pageContext.getOut().print(theIterator.theDocument.get(label));
+	    	pageContext.getOut().print(theIterator.theDocument.get(label));
 	    }
 	} catch (CorruptIndexException e) {
 		logger.error("Corruption Exception", e);

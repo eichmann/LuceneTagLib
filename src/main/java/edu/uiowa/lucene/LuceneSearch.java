@@ -70,6 +70,7 @@ public class LuceneSearch extends BodyTagSupport {
 	boolean useExactMatch = false;
 	boolean caseSensitive = true;
 	Operator defaultOperator = Operator.AND;
+	Hashtable<String, String> uniquenessHash = null;
 
 	public static void main(String[] args) {
 		String originalQuery = "Robert Burton, Robert 1925-1984";
@@ -326,6 +327,18 @@ public class LuceneSearch extends BodyTagSupport {
 
 	public List<FacetResult> getFacetResults() {
 		return facetResults;
+	}
+	
+	public boolean uniquenessHashExists(String key) {
+		if (uniquenessHash == null || key == null)
+			return false;
+		return uniquenessHash.containsKey(key);
+	}
+	
+	public void adduniquenessKey(String key) {
+		if (uniquenessHash == null)
+			uniquenessHash = new Hashtable<String,String>();
+		uniquenessHash.put(key, key);
 	}
 
 }

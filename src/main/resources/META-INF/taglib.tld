@@ -260,6 +260,55 @@
 	</tag>
 	
 	<tag>
+		<name>uniqueSearchIterator</name>
+		<tag-class>edu.uiowa.lucene.LuceneUniqueIterator</tag-class>
+		<body-content>JSP</body-content>
+
+		<attribute>
+			<name>label</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+		<attribute>
+			<name>limitCriteria</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+        <attribute>
+            <name>startCriteria</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+
+		<attribute>
+			<name>thresholdCriteria</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+		<attribute>
+			<name>rankOffset</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	
+	<tag>
+		<name>searchContext</name>
+		<tag-class>edu.uiowa.lucene.LuceneSearchContext</tag-class>
+		<body-content>JSP</body-content>
+
+		<attribute>
+			<name>limitCriteria</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+	</tag>
+	
+	<tag>
 		<name>hit</name>
 		<tag-class>edu.uiowa.lucene.LuceneHit</tag-class>
 		<body-content>JSP</body-content>

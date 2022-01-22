@@ -23,7 +23,9 @@ src/main/java/edu/uiowa/lucene/LuceneHitRank.java -text
 src/main/java/edu/uiowa/lucene/LuceneIndex.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneIterator.java svneol=native#text/x-java-source
 src/main/java/edu/uiowa/lucene/LuceneSearch.java svneol=native#text/x-java-source
+src/main/java/edu/uiowa/lucene/LuceneSearchContext.java -text
 src/main/java/edu/uiowa/lucene/LuceneTaxonomy.java -text
+src/main/java/edu/uiowa/lucene/LuceneUniqueIterator.java -text
 src/main/java/edu/uiowa/lucene/biomedical/BiomedicalAnalyzer.java -text
 src/main/java/edu/uiowa/lucene/biomedical/BiomedicalNormalizer.java -text
 src/main/java/edu/uiowa/lucene/biomedical/BiomedicalParseCup.java -text
